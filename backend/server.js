@@ -16,10 +16,9 @@ try { mkdirSync('./data', { recursive: true }); } catch {}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const FRONTEND_URL = process.env.FRONTEND_URL || true;
 
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: true, // Always reflect the request origin to fix Vercel dynamic URLs permanently
   credentials: true
 }));
 app.use(express.json());
