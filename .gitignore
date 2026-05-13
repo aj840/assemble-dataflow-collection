@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+node_modules
+
+# Build output
+dist/
+dist
+dist-ssr/
+
+# Environment variables (secrets - NEVER commit these)
+.env
+.env.local
+.env.*.local
+
+# Database files (runtime data, not source code)
+backend/data/*.json
+
+# Old nested folder and zip (cleanup artifacts)
+Assemble DataFlow Collection/
+Assemble DataFlow Collection.zip
+*.zip
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local files
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Test scripts
+test-login.ps1
