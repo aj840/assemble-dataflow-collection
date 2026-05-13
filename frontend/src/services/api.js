@@ -27,7 +27,7 @@ const req = async (url, opts = {}) => {
     // Specifically handle 'Failed to fetch' which usually means the server is down
     if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
       console.error('Network Error: Could not connect to API at', API);
-      throw new Error('Could not connect to the backend server. Please ensure it is running on http://localhost:5000');
+      throw new Error(`Network Error: Could not connect to API. Please check your internet connection or API server status. (Trying to reach: ${API})`);
     }
     throw err;
   }
