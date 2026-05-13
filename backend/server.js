@@ -26,7 +26,7 @@ app.use(cors({
   origin: FRONTEND_URL,
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // --- Auth ---
 app.post('/api/auth/login', login);
