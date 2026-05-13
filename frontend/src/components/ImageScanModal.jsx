@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import ModalPortal from './ModalPortal';
+import GlassIcon from './GlassIcon';
 import { extractPlanDataFromImage } from '../services/vision';
 
 const STAGES = {
