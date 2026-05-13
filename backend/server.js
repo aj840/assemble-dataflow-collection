@@ -3,7 +3,11 @@ import express from 'express';
 import cors from 'cors';
 import { login } from './routes/auth.js';
 import { getMOs, createMO, updateMO, deleteMO, parseSKUPreview } from './routes/mos.js';
-import { getConfig, updateConfig, getUsers, createUser, updateUser, deleteUser, getComponents, manageComponents, getAuditLogs, deleteAuditLogs, backupDatabase, handleDbAction, getTrash, handleTrashAction, wipeAllData } from './routes/admin.js';
+import {
+  getConfig, updateConfig, getUsers, createUser, updateUser, deleteUser,
+  getComponents, manageComponents, getAuditLogs, deleteAuditLogs, backupDatabase, restoreDatabase,
+  handleDbAction, getTrash, handleTrashAction, wipeAllData
+} from './routes/admin.js';
 import { getStats, getReport } from './routes/stats.js';
 import { downloadWipExcel } from './routes/wipReport.js';
 import { getScrapEntries, createScrapEntry, updateScrapEntry, deleteScrapEntry, exportScrapExcel } from './routes/scrap.js';
@@ -67,6 +71,7 @@ app.delete('/api/admin/audit', deleteAuditLogs);
 
 // --- Admin: Backup ---
 app.get('/api/admin/backup', backupDatabase);
+app.post('/api/admin/restore', restoreDatabase);
 
 // --- Admin: DB Manager & Trash ---
 app.post('/api/admin/db/action', handleDbAction);
