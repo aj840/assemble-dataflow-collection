@@ -159,19 +159,6 @@ export const backupDatabase = (req, res) => {
   res.download('./data/db.json', `MfgPlan_Backup_${new Date().toISOString().split('T')[0]}.json`);
 };
 
-// POST /api/admin/restore (Temporary for migration)
-export const restoreDatabase = async (req, res) => {
-  try {
-    const newData = req.body;
-    if (!newData || !newData.users) return res.status(400).json({ message: 'Invalid database payload' });
-    db.data = newData;
-    await db.write();
-    res.json({ success: true, message: 'Database restored successfully' });
-  } catch (err) {
-    res.status(500).json({ message: 'Restore failed', error: err.message });
-  }
-};
-
 // POST /api/admin/db/action
 export const handleDbAction = async (req, res) => {
   const { action, type, ids } = req.body;
