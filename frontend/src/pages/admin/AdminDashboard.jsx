@@ -54,7 +54,8 @@ export default function AdminDashboard({ onNavigate }) {
     setDownloadingWip(true);
     try {
       const params = new URLSearchParams({ startDate: wipStart, endDate: wipEnd });
-      const url = `http://localhost:5000/api/stats/wip-excel?${params}`;
+      const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const url = `${BASE_URL}/api/stats/wip-excel?${params}`;
       const link = document.createElement('a');
       link.href = url;
       const safeStart = wipStart.replace(/[T:]/g, '-');
@@ -188,9 +189,9 @@ export default function AdminDashboard({ onNavigate }) {
           <p className="text-muted text-sm">System-wide performance metrics and management hub.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ width: 140 }} max={today} />
+          <input type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ width: 175, fontSize: 12 }} />
           <span className="text-muted">to</span>
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ width: 140 }} max={today} />
+          <input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ width: 175, fontSize: 12 }} />
           {(startDate || endDate) && (
             <button className="btn btn-secondary btn-sm" onClick={() => { setStartDate(''); setEndDate(''); }}>Clear</button>
           )}

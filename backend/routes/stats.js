@@ -5,21 +5,30 @@ export const getStats = (req, res) => {
   const { date, startDate, endDate } = req.query;
   const today = date || new Date().toISOString().split('T')[0];
 
+  // Helper for proper Date comparisons
+  const parseStart = (s) => s ? new Date(s.length === 10 ? s + 'T00:00:00' : s) : null;
+  const parseEnd = (s) => s ? new Date(s.length === 10 ? s + 'T23:59:59' : s) : null;
+  const startDT = parseStart(startDate);
+  const endDT = parseEnd(endDate);
+
+  const inPeriod = (dateStr) => {
+    if (!startDT || !endDT) return true;
+    const d = new Date(dateStr || '');
+    return d >= startDT && d <= endDT;
+  };
+
   // Apply date filter to MO entries
   let entries = db.data.moEntries || [];
   if (startDate && endDate) {
-    entries = entries.filter(e => {
-      const d = (e.createdAt || '').split('T')[0];
-      return d >= startDate && d <= endDate;
-    });
+    entries = entries.filter(e => inPeriod(e.createdAt));
   } else if (date) {
     entries = entries.filter(e => (e.createdAt || '').startsWith(date));
   }
 
-  // Scrap entries (always all, filtered separately if needed)
+  // Scrap entries
   const scrap = db.data.scrapEntries || [];
   const filteredScrap = (startDate && endDate)
-    ? scrap.filter(e => { const d = (e.submittedAt || '').split('T')[0]; return d >= startDate && d <= endDate; })
+    ? scrap.filter(e => inPeriod(e.submittedAt))
     : date
       ? scrap.filter(e => (e.submittedAt || '').startsWith(date))
       : scrap;
@@ -27,7 +36,7 @@ export const getStats = (req, res) => {
   // Return entries
   const returns = db.data.returnEntries || [];
   const filteredReturns = (startDate && endDate)
-    ? returns.filter(e => { const d = (e.returnedAt || '').split('T')[0]; return d >= startDate && d <= endDate; })
+    ? returns.filter(e => inPeriod(e.returnedAt))
     : date
       ? returns.filter(e => (e.returnedAt || '').startsWith(date))
       : returns;
@@ -149,23 +158,23 @@ export const getReport = (req, res) => {
   const { startDate, endDate } = req.query;
   if (!startDate || !endDate) return res.status(400).json({ message: 'Start and end dates are required' });
 
+  // Helper for proper Date comparisons
+  const parseStart = (s) => s ? new Date(s.length === 10 ? s + 'T00:00:00' : s) : null;
+  const parseEnd = (s) => s ? new Date(s.length === 10 ? s + 'T23:59:59' : s) : null;
+  const startDT = parseStart(startDate);
+  const endDT = parseEnd(endDate);
+
+  const inPeriod = (dateStr) => {
+    if (!startDT || !endDT) return true;
+    const d = new Date(dateStr || '');
+    return d >= startDT && d <= endDT;
+  };
+
   // Filter entries exactly by the datetime range
-  const moEntries = (db.data.moEntries || []).filter(e => {
-    const d = e.createdAt || '';
-    return d >= startDate && d <= endDate;
-  });
-  const scrapEntries = (db.data.scrapEntries || []).filter(e => {
-    const d = e.submittedAt || '';
-    return d >= startDate && d <= endDate;
-  });
-  const returnEntries = (db.data.returnEntries || []).filter(e => {
-    const d = e.returnedAt || '';
-    return d >= startDate && d <= endDate;
-  });
-  const reworkEntries = (db.data.reworkEntries || []).filter(e => {
-    const d = e.submittedAt || '';
-    return d >= startDate && d <= endDate;
-  });
+  const moEntries = (db.data.moEntries || []).filter(e => inPeriod(e.createdAt));
+  const scrapEntries = (db.data.scrapEntries || []).filter(e => inPeriod(e.submittedAt));
+  const returnEntries = (db.data.returnEntries || []).filter(e => inPeriod(e.returnedAt));
+  const reworkEntries = (db.data.reworkEntries || []).filter(e => inPeriod(e.submittedAt));
 
   const totalMOs = moEntries.length;
   const pendingMOs = moEntries.filter(e => e.status === 'Pending').length;

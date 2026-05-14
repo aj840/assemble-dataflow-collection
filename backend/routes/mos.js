@@ -85,10 +85,16 @@ export const getMOs = (req, res) => {
     });
   }
   if (date) entries = entries.filter(e => e.createdAt.startsWith(date));
+  
   if (startDate && endDate) {
+    const parseStart = (s) => s ? new Date(s.length === 10 ? s + 'T00:00:00' : s) : null;
+    const parseEnd = (s) => s ? new Date(s.length === 10 ? s + 'T23:59:59' : s) : null;
+    const startDT = parseStart(startDate);
+    const endDT = parseEnd(endDate);
+    
     entries = entries.filter(e => {
-      const d = e.createdAt.split('T')[0];
-      return d >= startDate && d <= endDate;
+      const d = new Date(e.createdAt || '');
+      return d >= startDT && d <= endDT;
     });
   }
 
