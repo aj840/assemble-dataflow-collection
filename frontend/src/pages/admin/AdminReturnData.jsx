@@ -21,7 +21,10 @@ export default function AdminReturnData() {
     finally { setLoading(false); }
   }, [moSearch, filterStart, filterEnd]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const t = setTimeout(() => load(), 0);
+    return () => clearTimeout(t);
+  }, [load]);
 
   const fullMOs   = entries.filter(e => e.isFullMO);
   const compRets  = entries.filter(e => !e.isFullMO);

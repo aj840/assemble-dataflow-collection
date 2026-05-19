@@ -21,7 +21,10 @@ export default function AdminTrash() {
     }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    const t = setTimeout(() => loadData(), 0);
+    return () => clearTimeout(t);
+  }, [loadData]);
 
   const toggleSelectAll = () => {
     if (selectedIds.length === data.length) {

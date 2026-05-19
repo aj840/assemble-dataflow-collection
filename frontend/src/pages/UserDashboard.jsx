@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import GlassIcon from '../components/GlassIcon';
@@ -56,14 +56,7 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
   const toggleSelectMO = (id) => {
     setSelectedMOs(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
-  const toggleSelectAll = () => {
-    const pendingMOs = mos.filter(m => m.status !== 'Completed');
-    if (selectedMOs.length === pendingMOs.length && pendingMOs.length > 0) {
-      setSelectedMOs([]);
-    } else {
-      setSelectedMOs(pendingMOs.map(m => m.id));
-    }
-  };
+
   const handleBulkClose = async () => {
     if (selectedMOs.length === 0) return;
     if (!window.confirm(`Close ${selectedMOs.length} selected MO(s)? This action cannot be undone.`)) return;
@@ -76,7 +69,7 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
     finally { setUpdatingId(null); }
   };
 
-  const load = async (showLoading = true) => {
+  const load = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
       const params = {};
@@ -97,9 +90,12 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
       setReturnHistory(returnsData);
     } catch (e) { console.error(e); }
     finally { if (showLoading) setLoading(false); }
-  };
+  }, [filterStart, filterEnd, filterStatus, filterPlanDate]);
 
-  useEffect(() => { load(); }, [filterStart, filterEnd, filterStatus, filterPlanDate]);
+  useEffect(() => {
+    const t = setTimeout(() => load(), 0);
+    return () => clearTimeout(t);
+  }, [load]);
 
   // Load pending MOs for return modal
   const openReturnModal = async () => {

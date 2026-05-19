@@ -41,6 +41,14 @@ export const getStats = (req, res) => {
       ? returns.filter(e => (e.returnedAt || '').startsWith(date))
       : returns;
 
+  // Rework entries
+  const rework = db.data.reworkEntries || [];
+  const filteredRework = (startDate && endDate)
+    ? rework.filter(e => inPeriod(e.submittedAt))
+    : date
+      ? rework.filter(e => (e.submittedAt || '').startsWith(date))
+      : rework;
+
   const incomeToday  = (db.data.moEntries || []).filter(e => (e.createdAt || '').startsWith(today)).length;
   const outgoToday   = (db.data.moEntries || []).filter(e => e.completedAt && e.completedAt.startsWith(today)).length;
   const totalMOs     = entries.length;
@@ -65,16 +73,10 @@ export const getStats = (req, res) => {
     return s + bQty + pQty + cQty + sQty + lQty;
   }, 0);
   const RC = filteredScrap.reduce((s, e) => s + (e.receive || 0), 0)
-           + (db.data.reworkEntries || []).filter(e => {
-               const d = (e.submittedAt || '').split('T')[0];
-               return startDate && endDate ? (d >= startDate && d <= endDate) : date ? (e.submittedAt || '').startsWith(date) : true;
-             }).reduce((s, e) => s + (e.receive || 0), 0);
+           + filteredRework.reduce((s, e) => s + (e.receive || 0), 0);
   const RJ = filteredScrap.reduce((s, e) => s + (e.reject  || 0), 0)
-           + (db.data.reworkEntries || []).filter(e => {
-               const d = (e.submittedAt || '').split('T')[0];
-               return startDate && endDate ? (d >= startDate && d <= endDate) : date ? (e.submittedAt || '').startsWith(date) : true;
-             }).reduce((s, e) => s + (e.reject  || 0), 0);
-  // RT: Full MO returns = sum of all 4 component quantities; Component returns = componentQty
+           + filteredRework.reduce((s, e) => s + (e.reject  || 0), 0);
+  // RT: Full MO returns = sum of all components; Component returns = componentQty
   const RT = filteredReturns.reduce((s, e) => {
     if (e.isFullMO) {
       const mo = (db.data.moEntries || []).find(m => m.id === e.moId);
@@ -83,7 +85,8 @@ export const getStats = (req, res) => {
       const pQty = mo.pcbaQty   !== undefined ? (mo.pcbaQty   || 0) : (mo.qty || 0);
       const cQty = mo.coilQty   !== undefined ? (mo.coilQty   || 0) : (mo.qty || 0);
       const sQty = mo.shellQty  !== undefined ? (mo.shellQty  || 0) : (mo.qty || 0);
-      return s + bQty + pQty + cQty + sQty;
+      const lQty = mo.lensQty   !== undefined ? (mo.lensQty   || 0) : 0;
+      return s + bQty + pQty + cQty + sQty + lQty;
     }
     return s + (e.componentQty || 0);
   }, 0);

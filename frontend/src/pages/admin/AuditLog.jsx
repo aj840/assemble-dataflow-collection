@@ -20,7 +20,10 @@ export default function AuditLog() {
     api.getAudit().then(setLogs).catch(console.error).finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => load(), 0);
+    return () => clearTimeout(t);
+  }, []);
 
   const handleShowDelete = async () => {
     if (!startDate || !endDate) return alert('Please select both start and end dates.');

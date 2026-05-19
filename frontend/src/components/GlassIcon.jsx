@@ -102,7 +102,6 @@ export default function GlassIcon({ name, size = 32, color = 'currentColor', sty
             <path d="M12 4V15M12 4L8 8M12 4L16 8" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.95"/>
           </svg>
         );
-      case 'card':
       case 'component':
         return (
           <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

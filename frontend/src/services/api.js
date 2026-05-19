@@ -56,7 +56,7 @@ export const api = {
   createScrap: (body) => req('/scrap', { method: 'POST', body }),
   updateScrap: (id, body) => req(`/scrap/${id}`, { method: 'PUT', body }),
   deleteScrap: (id) => req(`/scrap/${id}`, { method: 'DELETE' }),
-  exportScrapUrl: (params = {}) => `${API}/scrap/export?${new URLSearchParams(params).toString()}`,  // eslint-disable-line no-undef
+  exportScrapUrl: (params = {}) => `${API}/scrap/export?${new URLSearchParams(params).toString()}`,
   getReturns: (params = {}) => req('/returns?' + new URLSearchParams(params).toString()),
   createReturn: (body) => req('/returns', { method: 'POST', body }),
   deleteReturn: (id) => req(`/returns/${id}`, { method: 'DELETE' }),
@@ -69,5 +69,5 @@ export const api = {
   createRework: (body) => req('/rework', { method: 'POST', body }),
   updateRework: (id, body) => req(`/rework/${id}`, { method: 'PUT', body }),
   deleteRework: (id) => req(`/rework/${id}`, { method: 'DELETE' }),
-  exportReworkUrl: (params = {}) => `${API}/rework/export?${new URLSearchParams(params).toString()}`,  // eslint-disable-line no-undef
+  exportReworkUrl: (params = {}) => `${API}/rework/export?${new URLSearchParams(params).toString()}`,
 };

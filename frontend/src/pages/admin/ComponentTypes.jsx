@@ -24,7 +24,10 @@ export default function ComponentTypes() {
     api.getComponents().then(setComponents).catch(console.error).finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => load(), 0);
+    return () => clearTimeout(t);
+  }, []);
 
   const openModal = (act, item = null) => {
     setAction(act);

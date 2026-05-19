@@ -67,8 +67,14 @@ export default function ReworkPage({ onBack }) {
     finally { setRewLoading(false); }
   }, [reworkSearch, filterDate, filterStart, filterEnd, filterComp]);
 
-  useEffect(() => { loadMOs(); }, []);
-  useEffect(() => { loadRework(); }, [reworkSearch, filterDate, filterStart, filterEnd, filterComp]);
+  useEffect(() => {
+    const t = setTimeout(() => loadMOs(), 0);
+    return () => clearTimeout(t);
+  }, [loadMOs]);
+  useEffect(() => {
+    const t = setTimeout(() => loadRework(), 0);
+    return () => clearTimeout(t);
+  }, [reworkSearch, filterDate, filterStart, filterEnd, filterComp, loadRework]);
 
   // Filtered MO list
   const filteredMOs = mos.filter(mo => {
@@ -173,6 +179,7 @@ export default function ReworkPage({ onBack }) {
           await api.deleteRework(id);
           loadRework();
       } catch (e) {
+          console.error(e);
           alert('Failed to delete rework record.');
       }
   }

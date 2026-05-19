@@ -28,7 +28,10 @@ export default function AdminScrapData() {
     finally { setLoading(false); }
   }, [moSearch, filterDate, filterStart, filterEnd, filterComp]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const t = setTimeout(() => load(), 0);
+    return () => clearTimeout(t);
+  }, [load]);
 
   const handleExport = () => {
     const params = {};

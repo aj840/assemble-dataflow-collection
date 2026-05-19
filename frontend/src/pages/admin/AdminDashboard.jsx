@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../services/api';
 import GlassIcon from '../../components/GlassIcon';
 import ModalPortal from '../../components/ModalPortal';
@@ -65,13 +65,14 @@ export default function AdminDashboard({ onNavigate }) {
       link.click();
       document.body.removeChild(link);
     } catch(e) {
+      console.error(e);
       alert('Failed to download WIP report.');
     } finally {
       setTimeout(() => setDownloadingWip(false), 1500);
     }
   };
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -81,9 +82,12 @@ export default function AdminDashboard({ onNavigate }) {
       setStats(data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  };
+  }, [startDate, endDate]);
 
-  useEffect(() => { load(); }, [startDate, endDate]);
+  useEffect(() => {
+    const t = setTimeout(() => load(), 0);
+    return () => clearTimeout(t);
+  }, [load]);
 
   const handleSystemExport = async () => {
     if (!startDate || !endDate) return alert('Please select a start and end date for the export.');
@@ -134,7 +138,8 @@ export default function AdminDashboard({ onNavigate }) {
     try {
       const data = await api.getReport({ startDate: reportStart, endDate: reportEnd });
       setReportData(data);
-    } catch(e) {
+    } catch (e) {
+      console.error(e);
       alert('Failed to generate report.');
     } finally {
       setGeneratingReport(false);
@@ -165,7 +170,7 @@ export default function AdminDashboard({ onNavigate }) {
     document.body.removeChild(link);
   };
 
-  const today = new Date().toISOString().split('T')[0];
+
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>

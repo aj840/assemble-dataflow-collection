@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../services/api';
 import GlassIcon from '../../components/GlassIcon';
 import ModalPortal from '../../components/ModalPortal';
@@ -15,7 +15,7 @@ export default function DatabaseManager() {
   const [editModal, setEditModal] = useState(false);
   const [editingMO, setEditingMO] = useState(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -29,9 +29,12 @@ export default function DatabaseManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate, filterPlanDate]);
 
-  useEffect(() => { load(); }, [startDate, endDate, filterPlanDate]);
+  useEffect(() => {
+    const t = setTimeout(() => load(), 0);
+    return () => clearTimeout(t);
+  }, [load]);
 
   const filtered = mos.filter(m => {
     if (search) {
@@ -110,6 +113,7 @@ export default function DatabaseManager() {
         await api.deleteMO(id);
         load();
       } catch (e) {
+        console.error(e);
         alert('Failed to delete MO');
       }
     }
@@ -141,6 +145,7 @@ export default function DatabaseManager() {
       setEditingMO(null);
       load();
     } catch (e) {
+      console.error(e);
       alert('Failed to update MO data');
     }
   };

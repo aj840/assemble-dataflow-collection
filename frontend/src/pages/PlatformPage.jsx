@@ -4,7 +4,7 @@ import GlassIcon from '../components/GlassIcon';
 import ModalPortal from '../components/ModalPortal';
 
 export default function PlatformPage({ onSelectPlan, onSelectScrap, onSelectRework, onAdmin, onDashboard }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const modules = [
     { id: 'plan',   icon: 'plan',    label: 'Plan',   desc: 'Manage production schedules, input MO data, and review SKU component breakdowns.', active: true, badge: 'Active Shift' },

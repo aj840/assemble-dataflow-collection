@@ -20,7 +20,10 @@ export default function UserManagement() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => load(), 0);
+    return () => clearTimeout(t);
+  }, []);
 
   const openCreate = () => { setForm({ employeeId: '', password: '', fullName: '', role: 'user' }); setEditUser(null); setError(''); setShowModal(true); };
   const openEdit = (u) => { setForm({ employeeId: u.employeeId, password: '', fullName: u.fullName, role: u.role }); setEditUser(u); setError(''); setShowModal(true); };

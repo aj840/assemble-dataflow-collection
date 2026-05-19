@@ -34,7 +34,10 @@ export default function AdminDBManager() {
     }
   }, [activeTab]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    const t = setTimeout(() => loadData(), 0);
+    return () => clearTimeout(t);
+  }, [loadData]);
 
   const filteredData = data.filter(item => {
     if (searchTerm && !(item.moNumber || '').toLowerCase().includes(searchTerm.toLowerCase())) return false;

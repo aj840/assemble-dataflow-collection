@@ -85,8 +85,14 @@ export default function ScrapPage({ onBack }) {
     finally { setScrLoading(false); }
   }, [scrapSearch, filterDate, filterStart, filterEnd, filterComp]);
 
-  useEffect(() => { loadMOs(); }, []);
-  useEffect(() => { loadScrap(); }, [scrapSearch, filterDate, filterStart, filterEnd, filterComp]);
+  useEffect(() => {
+    const t = setTimeout(() => loadMOs(), 0);
+    return () => clearTimeout(t);
+  }, [loadMOs]);
+  useEffect(() => {
+    const t = setTimeout(() => loadScrap(), 0);
+    return () => clearTimeout(t);
+  }, [scrapSearch, filterDate, filterStart, filterEnd, filterComp, loadScrap]);
 
   // Filtered MO list
   const filteredMOs = mos.filter(mo => {

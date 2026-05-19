@@ -14,13 +14,13 @@ export default function PlanPage({ initialRows = [], onBack, onConfirm }) {
   const [config, setConfig] = useState({ fixedBattery: '', fixedPCBA: '', autoMode: false });
   const [rows, setRows] = useState(initialRows);
   const [editId, setEditId] = useState(null);
-  const [loading, setLoading] = useState(false);
+
   const [parsing, setParsing] = useState(false);
   const [error, setError] = useState('');
   const [showScanModal, setShowScanModal] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
   const [csvLoading, setCsvLoading] = useState(false);
-  const csvInputRef = useState(null);
+
   // Plan date — one date for the whole pending batch
   const todayStr = new Date().toISOString().split('T')[0];
   const [planDate, setPlanDate] = useState(todayStr);
@@ -65,8 +65,8 @@ export default function PlanPage({ initialRows = [], onBack, onConfirm }) {
   // Live SKU auto-fill
   useEffect(() => {
     if (!form.sku) {
-      setDerived({ battery: config.fixedBattery, pcba: config.fixedPCBA, coil: '', shell: '' });
-      return;
+      const t = setTimeout(() => setDerived({ battery: config.fixedBattery, pcba: config.fixedPCBA, coil: '', shell: '' }), 0);
+      return () => clearTimeout(t);
     }
     const timer = setTimeout(async () => {
       setParsing(true);
@@ -227,10 +227,6 @@ export default function PlanPage({ initialRows = [], onBack, onConfirm }) {
       else if (headerLine.includes(';') && !headerLine.includes(',')) delimiter = ';';
 
       const parseLine = (line) => {
-        // Simple regex to split by delimiter, respecting quotes
-        const regex = new RegExp(`(?:^|${delimiter})(?:"([^"]*(?:""[^"]*)*)"|([^${delimiter}"]))`, 'g');
-        let result = [];
-        let match;
         // Fallback for simple split if regex is too complex/slow for large files
         if (!line.includes('"')) {
           return line.split(delimiter).map(c => c.trim());
