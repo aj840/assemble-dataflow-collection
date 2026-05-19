@@ -53,9 +53,8 @@ export default function AdminDashboard({ onNavigate }) {
     if (!wipStart || !wipEnd) return alert('Please select both start and end date/time for the WIP report.');
     setDownloadingWip(true);
     try {
-      const params = new URLSearchParams({ startDate: wipStart, endDate: wipEnd });
-      const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const url = `${BASE_URL}/api/stats/wip-excel?${params}`;
+      const params = { startDate: wipStart, endDate: wipEnd };
+      const url = api.exportWipUrl(params);
       const link = document.createElement('a');
       link.href = url;
       const safeStart = wipStart.replace(/[T:]/g, '-');

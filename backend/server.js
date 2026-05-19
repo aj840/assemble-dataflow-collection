@@ -8,6 +8,7 @@ import { getStats, getReport } from './routes/stats.js';
 import { downloadWipExcel } from './routes/wipReport.js';
 import { getScrapEntries, createScrapEntry, updateScrapEntry, deleteScrapEntry, exportScrapExcel } from './routes/scrap.js';
 import { getReturnEntries, createReturnEntry, deleteReturnEntry, replenishReturnEntry } from './routes/returns.js';
+import { getReworkEntries, createReworkEntry, updateReworkEntry, deleteReworkEntry, exportReworkExcel } from './routes/rework.js';
 import { visionUpload, extractFromImage } from './routes/vision.js';
 import { mkdirSync } from 'fs';
 
@@ -45,6 +46,13 @@ app.get('/api/returns', getReturnEntries);
 app.post('/api/returns', createReturnEntry);
 app.put('/api/returns/:id/replenish', replenishReturnEntry);
 app.delete('/api/returns/:id', deleteReturnEntry);
+
+// --- Rework ---
+app.get('/api/rework', getReworkEntries);
+app.post('/api/rework', createReworkEntry);
+app.put('/api/rework/:id', updateReworkEntry);
+app.delete('/api/rework/:id', deleteReworkEntry);
+app.get('/api/rework/export', exportReworkExcel);
 
 // --- Admin: Config ---
 app.get('/api/admin/config', getConfig);
