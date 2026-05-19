@@ -316,8 +316,10 @@ export const downloadWipExcel = (req, res) => {
 
   const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
+  const safeStart = startDate ? startDate.replace(/[T:]/g, '-') : '';
+  const safeEnd = endDate ? endDate.replace(/[T:]/g, '-') : '';
   const filename = startDate && endDate
-    ? `WIP_Report_${startDate}_to_${endDate}.xlsx`
+    ? `WIP_Report_${safeStart}_to_${safeEnd}.xlsx`
     : `WIP_Report_AllTime.xlsx`;
 
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
