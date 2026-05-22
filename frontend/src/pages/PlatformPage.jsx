@@ -3,13 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import GlassIcon from '../components/GlassIcon';
 import ModalPortal from '../components/ModalPortal';
 
-export default function PlatformPage({ onSelectPlan, onSelectScrap, onSelectRework, onAdmin, onDashboard }) {
+export default function PlatformPage({ onSelectPlan, onSelectScrap, onSelectRework, onSelectRnd, onAdmin, onDashboard }) {
   const { user } = useAuth();
 
   const modules = [
     { id: 'plan',   icon: 'plan',    label: 'Plan',   desc: 'Manage production schedules, input MO data, and review SKU component breakdowns.', active: true, badge: 'Active Shift' },
     { id: 'scrap',  icon: 'scrap',   label: 'Scrap',  desc: 'Log production waste, defective components, and material loss for quality tracking.',  active: true },
     { id: 'rework', icon: 'history', label: 'Rework', desc: 'Track components sent for rework, log return quantities and update WIP status automatically.', active: true },
+    { id: 'rnd',    icon: 'settings',label: 'R&D',    desc: 'Log experimental product data, test results, and auto-fetch product specs from catalog.', active: true },
   ];
 
   const [showHelpDocs, setShowHelpDocs] = useState(false);
@@ -57,11 +58,11 @@ export default function PlatformPage({ onSelectPlan, onSelectScrap, onSelectRewo
           <p className="text-muted">Select an operational module below to begin your manufacturing data entry or management tasks.</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, marginBottom: 40 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, marginBottom: 40 }}>
           {modules.map(mod => (
             <div
               key={mod.id}
-          onClick={mod.id === 'plan' ? onSelectPlan : mod.id === 'scrap' ? onSelectScrap : mod.id === 'rework' ? onSelectRework : undefined}
+          onClick={mod.id === 'plan' ? onSelectPlan : mod.id === 'scrap' ? onSelectScrap : mod.id === 'rework' ? onSelectRework : mod.id === 'rnd' ? onSelectRnd : undefined}
               className="card"
               style={{
                 padding: '32px 24px',

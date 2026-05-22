@@ -7,6 +7,8 @@ import ConfirmPage from './pages/ConfirmPage';
 import UserDashboard from './pages/UserDashboard';
 import ScrapPage from './pages/ScrapPage';
 import ReworkPage from './pages/ReworkPage';
+import RndPage from './pages/RndPage';
+import RndDashboard from './pages/RndDashboard';
 import AdminLayout from './pages/admin/AdminLayout';
 import './App.css';
 
@@ -24,6 +26,7 @@ const AppContent = () => {
       onSelectPlan={() => setView('plan')}
       onSelectScrap={() => setView('scrap')}
       onSelectRework={() => setView('rework')}
+      onSelectRnd={() => setView('rnd')}
       onAdmin={() => setView('admin')}
       onDashboard={() => setView('dashboard')}
     />
@@ -55,6 +58,18 @@ const AppContent = () => {
   );
   if (view === 'rework') return (
     <ReworkPage onBack={() => setView('platform')} />
+  );
+  if (view === 'rnd') return (
+    <RndPage
+      onBack={() => setView('platform')}
+      onDashboard={() => setView('rnd-dashboard')}
+    />
+  );
+  if (view === 'rnd-dashboard') return (
+    <RndDashboard
+      onBack={() => setView('platform')}
+      onNewEntry={() => setView('rnd')}
+    />
   );
   return null;
 };

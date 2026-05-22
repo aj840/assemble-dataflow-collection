@@ -70,5 +70,7 @@ export const api = {
   updateRework: (id, body) => req(`/rework/${id}`, { method: 'PUT', body }),
   deleteRework: (id) => req(`/rework/${id}`, { method: 'DELETE' }),
   exportReworkUrl: (params = {}) => `${API}/rework/export?${new URLSearchParams(params).toString()}`,
+  getRnd: (params = {}) => req('/rnd/entries?' + new URLSearchParams(params).toString()),
+  exportRndUrl: (params = {}) => `${API}/rnd/export?${new URLSearchParams(params).toString()}`,
   exportWipUrl: (params = {}) => `${API}/stats/wip-excel?${new URLSearchParams(params).toString()}`,
 };

@@ -35,6 +35,8 @@ const defaultData = {
   returnEntries: [],
   trashEntries: [],
   auditLogs: [],
+  rndProducts: [],
+  rndEntries: [],
   components: {
     batteries: [
       { id: 'B-001', name: '24mah battery', status: 'Active', updatedAt: '2024-03-12' },
