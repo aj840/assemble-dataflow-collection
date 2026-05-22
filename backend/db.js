@@ -132,5 +132,18 @@ const defaultData = {
 };
 
 const db = await JSONFilePreset('./data/db.json', defaultData);
+
+// Ensure backward compatibility for existing db.json files that are missing newer fields
+let needsWrite = false;
+for (const key of Object.keys(defaultData)) {
+  if (db.data[key] === undefined) {
+    db.data[key] = defaultData[key];
+    needsWrite = true;
+  }
+}
+if (needsWrite) {
+  await db.write();
+}
+
 export { randomUUID };
 export default db;
