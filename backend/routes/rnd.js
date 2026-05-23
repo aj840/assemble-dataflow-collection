@@ -106,39 +106,46 @@ export const getRndEntries = (req, res) => {
 
 // POST /api/rnd/entries
 export const createRndEntry = async (req, res) => {
-  const { code, description, category, submittedBy, pickNumber, acceptReject, receivedCount, remark } = req.body;
-  if (!code) {
-    return res.status(400).json({ message: 'Product code is required' });
+  let entriesToCreate = req.body;
+  if (!Array.isArray(entriesToCreate)) {
+    entriesToCreate = [entriesToCreate];
   }
 
   if (!db.data.rndEntries) db.data.rndEntries = [];
+  const createdEntries = [];
 
-  const newEntry = {
-    id: randomUUID(),
-    code,
-    description,
-    category,
-    pickNumber: pickNumber || '',
-    acceptReject: acceptReject || 'Accept',
-    receivedCount: receivedCount ? parseInt(receivedCount, 10) : 0,
-    remark: remark || '',
-    submittedBy: submittedBy || 'Unknown',
-    submittedAt: new Date().toISOString(),
-    isDeleted: false,
-  };
+  for (const item of entriesToCreate) {
+    const { code, description, category, submittedBy, pickNumber, acceptReject, receivedCount, remark } = item;
+    if (!code) continue;
 
-  db.data.rndEntries.push(newEntry);
+    const newEntry = {
+      id: randomUUID(),
+      code,
+      description,
+      category,
+      pickNumber: pickNumber || '',
+      acceptReject: acceptReject || 'Accept',
+      receivedCount: receivedCount ? parseInt(receivedCount, 10) : 0,
+      remark: remark || '',
+      submittedBy: submittedBy || 'Unknown',
+      submittedAt: new Date().toISOString(),
+      isDeleted: false,
+    };
 
-  if (!db.data.auditLogs) db.data.auditLogs = [];
-  db.data.auditLogs.unshift({
-    id: randomUUID(),
-    action: `R&D Entry created: ${code} (${acceptReject || 'Accept'}) by ${submittedBy || 'Unknown'}`,
-    user: submittedBy || 'Unknown',
-    time: new Date().toISOString(),
-  });
+    db.data.rndEntries.push(newEntry);
+    createdEntries.push(newEntry);
+
+    if (!db.data.auditLogs) db.data.auditLogs = [];
+    db.data.auditLogs.unshift({
+      id: randomUUID(),
+      action: `R&D Entry created: ${code} (${acceptReject || 'Accept'}) by ${submittedBy || 'Unknown'}`,
+      user: submittedBy || 'Unknown',
+      time: new Date().toISOString(),
+    });
+  }
 
   await db.write();
-  res.json({ success: true, entry: newEntry });
+  res.json({ success: true, entries: createdEntries });
 };
 
 // PUT /api/rnd/entries/:id

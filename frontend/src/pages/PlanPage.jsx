@@ -671,7 +671,7 @@ export default function PlanPage({ initialRows = [], onBack, onConfirm }) {
 
       {/* Footer */}
       <div style={{ textAlign: 'center', padding: '16px 24px', borderTop: '1px solid #e5e7eb', background: 'white', marginTop: 40, display: 'flex', justifyContent: 'space-between' }}>
-        <span className="text-sm text-muted">© 2024 UltraHuman Assembly Inc. All rights reserved.</span>
+        <span className="text-sm text-muted">© 2026 UltraHuman Assembly Inc. All rights reserved.</span>
         <div style={{ display: 'flex', gap: 20 }}>
           {['Privacy Policy', 'Terms of Service', 'Support'].map(l => (
             <span key={l} className="text-sm text-muted" style={{ cursor: 'pointer' }}>{l}</span>

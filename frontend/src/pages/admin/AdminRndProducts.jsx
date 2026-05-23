@@ -98,7 +98,7 @@ export default function AdminRndProducts() {
   if (isLoading) return <div style={{ padding: 24 }}>Loading R&D products…</div>;
 
   return (
-    <div className="admin-view" style={{ padding: 24, maxWidth: 960, margin: '0 auto' }}>
+    <div className="admin-view" style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
       <div style={{ marginBottom: 24 }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: 8 }}>R&D Products</h2>
         <p className="text-muted">Manage products available in the R&D module.</p>

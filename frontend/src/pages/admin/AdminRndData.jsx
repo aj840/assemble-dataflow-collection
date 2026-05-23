@@ -118,7 +118,7 @@ export default function AdminRndData() {
   };
 
   return (
-    <div className="admin-view" style={{ padding: 24, maxWidth: 1100, margin: '0 auto' }}>
+    <div className="admin-view" style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>

@@ -108,7 +108,7 @@ export default function PlatformPage({ onSelectPlan, onSelectScrap, onSelectRewo
       {/* Footer */}
       <div style={{ textAlign: 'center', padding: '20px', borderTop: '1px solid #e5e7eb', background: 'white', marginTop: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', maxWidth: 900, margin: '0 auto' }}>
-          <span className="text-sm text-muted">© 2024 UltraHuman Assembly Inc. All rights reserved.</span>
+          <span className="text-sm text-muted">© 2026 UltraHuman Assembly Inc. All rights reserved.</span>
           <div style={{ display: 'flex', gap: 20 }}>
             <span className="text-sm text-muted" style={{ cursor: 'pointer' }} onClick={() => setShowHelpDocs(true)}>Help Docs</span>
             <span className="text-sm text-muted" style={{ cursor: 'pointer' }}>Support</span>
