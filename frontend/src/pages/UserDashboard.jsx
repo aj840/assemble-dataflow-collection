@@ -1325,10 +1325,12 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
               </div>
               <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
                 {(() => {
-                  const todayStr = new Date().toISOString().split('T')[0];
+                  const getLocalDateStr = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                  const todayStr = getLocalDateStr(new Date());
+                  
                   const list = mos.filter(mo => {
-                    if (todayModal === 'income') return mo.createdAt && mo.createdAt.startsWith(todayStr);
-                    if (todayModal === 'outgo') return mo.completedAt && mo.completedAt.startsWith(todayStr);
+                    if (todayModal === 'income') return mo.createdAt && getLocalDateStr(new Date(mo.createdAt)) === todayStr;
+                    if (todayModal === 'outgo') return mo.completedAt && getLocalDateStr(new Date(mo.completedAt)) === todayStr;
                     return false;
                   });
 

@@ -1,56 +1,45 @@
 import db from '../db.js';
+import { getLocalDateStr, isSameLocalDay, inLocalPeriod } from '../utils/dates.js';
 
 // GET /api/stats?startDate=&endDate=&date=
 export const getStats = (req, res) => {
   const { date, startDate, endDate } = req.query;
-  const today = date || new Date().toISOString().split('T')[0];
-
-  // Helper for proper Date comparisons
-  const parseStart = (s) => s ? new Date(s.length === 10 ? s + 'T00:00:00' : s) : null;
-  const parseEnd = (s) => s ? new Date(s.length === 10 ? s + 'T23:59:59' : s) : null;
-  const startDT = parseStart(startDate);
-  const endDT = parseEnd(endDate);
-
-  const inPeriod = (dateStr) => {
-    if (!startDT || !endDT) return true;
-    const d = new Date(dateStr || '');
-    return d >= startDT && d <= endDT;
-  };
+  const today = date || getLocalDateStr();
 
   // Apply date filter to MO entries
   let entries = db.data.moEntries || [];
   if (startDate && endDate) {
-    entries = entries.filter(e => inPeriod(e.createdAt));
+    entries = entries.filter(e => inLocalPeriod(e.createdAt, startDate, endDate));
   } else if (date) {
-    entries = entries.filter(e => (e.createdAt || '').startsWith(date));
+    entries = entries.filter(e => isSameLocalDay(e.createdAt, date));
   }
 
   // Scrap entries
   const scrap = db.data.scrapEntries || [];
   const filteredScrap = (startDate && endDate)
-    ? scrap.filter(e => inPeriod(e.submittedAt))
+    ? scrap.filter(e => inLocalPeriod(e.submittedAt, startDate, endDate))
     : date
-      ? scrap.filter(e => (e.submittedAt || '').startsWith(date))
+      ? scrap.filter(e => isSameLocalDay(e.submittedAt, date))
       : scrap;
 
   // Return entries
   const returns = db.data.returnEntries || [];
   const filteredReturns = (startDate && endDate)
-    ? returns.filter(e => inPeriod(e.returnedAt))
+    ? returns.filter(e => inLocalPeriod(e.returnedAt, startDate, endDate))
     : date
-      ? returns.filter(e => (e.returnedAt || '').startsWith(date))
+      ? returns.filter(e => isSameLocalDay(e.returnedAt, date))
       : returns;
 
   // Rework entries
   const rework = db.data.reworkEntries || [];
   const filteredRework = (startDate && endDate)
-    ? rework.filter(e => inPeriod(e.submittedAt))
+    ? rework.filter(e => inLocalPeriod(e.submittedAt, startDate, endDate))
     : date
-      ? rework.filter(e => (e.submittedAt || '').startsWith(date))
+      ? rework.filter(e => isSameLocalDay(e.submittedAt, date))
       : rework;
 
-  const incomeToday  = (db.data.moEntries || []).filter(e => (e.createdAt || '').startsWith(today)).length;
-  const outgoToday   = (db.data.moEntries || []).filter(e => e.completedAt && e.completedAt.startsWith(today)).length;
+  const incomeToday  = (db.data.moEntries || []).filter(e => isSameLocalDay(e.createdAt, today)).length;
+  const outgoToday   = (db.data.moEntries || []).filter(e => isSameLocalDay(e.completedAt, today)).length;
   const totalMOs     = entries.length;
   const pendingMOs   = entries.filter(e => e.status === 'Pending').length;
   const completedMOs = entries.filter(e => e.status === 'Completed').length;
@@ -124,17 +113,17 @@ export const getStats = (req, res) => {
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    const dayStr   = d.toISOString().split('T')[0];
+    const dayStr   = getLocalDateStr(d);
     const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
     weeklyData.push({
       day:       dayLabel,
-      income:    allEntries.filter(e => (e.createdAt || '').startsWith(dayStr)).length,
-      completed: allEntries.filter(e => e.completedAt && e.completedAt.startsWith(dayStr)).length,
+      income:    allEntries.filter(e => isSameLocalDay(e.createdAt, dayStr)).length,
+      completed: allEntries.filter(e => isSameLocalDay(e.completedAt, dayStr)).length,
     });
   }
 
-  const scrapTodayCount = (db.data.scrapEntries || []).filter(e => (e.submittedAt || '').startsWith(today)).length;
-  const scrapTodayQty = (db.data.scrapEntries || []).filter(e => (e.submittedAt || '').startsWith(today)).reduce((sum, e) => sum + (e.receive || 0) + (e.reject || 0), 0);
+  const scrapTodayCount = (db.data.scrapEntries || []).filter(e => isSameLocalDay(e.submittedAt, today)).length;
+  const scrapTodayQty = (db.data.scrapEntries || []).filter(e => isSameLocalDay(e.submittedAt, today)).reduce((sum, e) => sum + (e.receive || 0) + (e.reject || 0), 0);
 
   res.json({
     incomeToday, outgoToday, totalMOs, pendingMOs, completedMOs,

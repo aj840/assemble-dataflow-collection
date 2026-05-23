@@ -1,4 +1,5 @@
 import db, { randomUUID } from '../db.js';
+import { isSameLocalDay, inLocalPeriod } from '../utils/dates.js';
 
 // Pro Ring battery size rules: size5=24mah, size6=32mah, size7-14=39mah
 const getProRingBattery = (num) => {
@@ -84,18 +85,10 @@ export const getMOs = (req, res) => {
       return m.includes(q) || m.slice(-4).includes(q) || m.slice(-3).includes(q);
     });
   }
-  if (date) entries = entries.filter(e => e.createdAt.startsWith(date));
+  if (date) entries = entries.filter(e => isSameLocalDay(e.createdAt, date));
   
   if (startDate && endDate) {
-    const parseStart = (s) => s ? new Date(s.length === 10 ? s + 'T00:00:00' : s) : null;
-    const parseEnd = (s) => s ? new Date(s.length === 10 ? s + 'T23:59:59' : s) : null;
-    const startDT = parseStart(startDate);
-    const endDT = parseEnd(endDate);
-    
-    entries = entries.filter(e => {
-      const d = new Date(e.createdAt || '');
-      return d >= startDT && d <= endDT;
-    });
+    entries = entries.filter(e => inLocalPeriod(e.createdAt, startDate, endDate));
   }
 
   // Filter by exact plan date

@@ -1,5 +1,6 @@
 import db, { randomUUID } from '../db.js';
 import * as XLSX from 'xlsx';
+import { isSameLocalDay, inLocalPeriod } from '../utils/dates.js';
 
 // GET /api/scrap
 export const getScrapEntries = (req, res) => {
@@ -11,12 +12,9 @@ export const getScrapEntries = (req, res) => {
     entries = entries.filter(e => (e.moNumber || '').toLowerCase().includes(q));
   }
   if (component) entries = entries.filter(e => e.component === component);
-  if (date) entries = entries.filter(e => e.submittedAt && e.submittedAt.startsWith(date));
+  if (date) entries = entries.filter(e => isSameLocalDay(e.submittedAt, date));
   if (startDate && endDate) {
-    entries = entries.filter(e => {
-      const d = (e.submittedAt || '').split('T')[0];
-      return d >= startDate && d <= endDate;
-    });
+    entries = entries.filter(e => inLocalPeriod(e.submittedAt, startDate, endDate));
   }
 
   entries.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
@@ -129,12 +127,9 @@ export const exportScrapExcel = (req, res) => {
     entries = entries.filter(e => (e.moNumber || '').toLowerCase().includes(q));
   }
   if (component) entries = entries.filter(e => e.component === component);
-  if (date) entries = entries.filter(e => e.submittedAt && e.submittedAt.startsWith(date));
+  if (date) entries = entries.filter(e => isSameLocalDay(e.submittedAt, date));
   if (startDate && endDate) {
-    entries = entries.filter(e => {
-      const d = (e.submittedAt || '').split('T')[0];
-      return d >= startDate && d <= endDate;
-    });
+    entries = entries.filter(e => inLocalPeriod(e.submittedAt, startDate, endDate));
   }
 
   entries.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
