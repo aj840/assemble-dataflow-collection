@@ -131,45 +131,69 @@ export default function PlatformPage({ onSelectPlan, onSelectScrap, onSelectRewo
               
               <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
                 <div style={{ marginBottom: 24 }}>
-                  <h4 style={{ color: '#2563eb', marginBottom: 8, fontSize: '1.1rem' }}>1. Introduction & Workflow</h4>
+                  <h4 style={{ color: '#2563eb', marginBottom: 8, fontSize: '1.1rem' }}>1. Introduction & Workflow Overview</h4>
                   <p className="text-sm text-muted" style={{ lineHeight: 1.6 }}>
-                    UltraHuman Assembly is your central hub for Manufacturing Orders (MOs). The core workflow goes: <strong>Plan Data Entry (Collecting Parts) ➡ Confirmation ➡ Production Dashboard (Tracking Assembly) ➡ MO Close.</strong>
+                    UltraHuman Assembly is your central hub for Manufacturing Orders (MOs). The core end-to-end workflow is: <strong>Plan Creation ➡ Component Collection ➡ Production Assembly ➡ Scrap/Rework/Returns ➡ MO Closure & WIP Tracking.</strong>
                   </p>
                 </div>
 
                 <div style={{ marginBottom: 24 }}>
-                  <h4 style={{ color: '#2563eb', marginBottom: 8, fontSize: '1.1rem' }}>2. Plan Data Entry (Component Collection)</h4>
+                  <h4 style={{ color: '#2563eb', marginBottom: 8, fontSize: '1.1rem' }}>2. MO Plan Data Entry</h4>
                   <p className="text-sm text-muted" style={{ lineHeight: 1.6, marginBottom: 8 }}>
-                    Click on the <strong>Plan</strong> module to start logging new manufacturing orders. This step is where you log parts you have <em>collected</em> from the warehouse.
+                    Start in the <strong>Plan</strong> module to log new manufacturing orders based on what you collect from the warehouse.
                   </p>
                   <ul className="text-sm text-muted" style={{ paddingLeft: 20, lineHeight: 1.6 }}>
-                    <li><strong>Target QTY:</strong> The total number of rings required for the MO.</li>
-                    <li><strong>REFER codes:</strong> When you enter a SKU, you must enter a Refer code. Typing the letter <strong>"O"</strong> or number <strong>"0"</strong> automatically maps the Shell to <strong>0.2mm</strong> thickness. Any other letter defaults to <strong>0.3mm</strong>.</li>
-                    <li><strong>Row Editing:</strong> If you collect fewer parts than the Target QTY, click the ✏️ Edit icon on the row and adjust the <em>"Collected"</em> amounts (Battery Collected, PCBA Collected, etc.).</li>
+                    <li><strong>Target QTY:</strong> Total rings required. This defaults your collected component quantities.</li>
+                    <li><strong>REFER Codes:</strong> "O" or "0" sets Shells to 0.2mm. Other letters default to 0.3mm.</li>
+                    <li><strong>Editing Collections:</strong> If you collect fewer parts than the Target, click the ✏️ Edit icon on the row to adjust specific component quantities (Battery, PCBA, etc.) before submitting.</li>
                   </ul>
                 </div>
 
                 <div style={{ marginBottom: 24 }}>
-                  <h4 style={{ color: '#2563eb', marginBottom: 8, fontSize: '1.1rem' }}>3. The Production Dashboard</h4>
+                  <h4 style={{ color: '#2563eb', marginBottom: 8, fontSize: '1.1rem' }}>3. User Dashboard & Assembly Tracking</h4>
                   <p className="text-sm text-muted" style={{ lineHeight: 1.6, marginBottom: 8 }}>
-                    Once a plan is confirmed, you can track it via the <strong>User Dashboard</strong> button on the top right.
+                    Track confirmed MOs in the <strong>User Dashboard</strong>.
                   </p>
                   <ul className="text-sm text-muted" style={{ paddingLeft: 20, lineHeight: 1.6 }}>
-                    <li><strong>Progress Fractions:</strong> A display of <code>100 / 120</code> means you have successfully assembled 100 components out of the 120 required target.</li>
-                    <li><strong>Qty Update Button:</strong> If you assemble more rings or have defective parts, click this button to explicitly set the exact assembled quantities.</li>
-                    <li><strong>MO Close:</strong> Once an MO is completely manufactured, click this button to officially lock and finalize the order.</li>
+                    <li><strong>Progress Update:</strong> Click the "Qty Update" button to record how many specific components have been successfully assembled.</li>
+                    <li><strong>Income/Outgo Today:</strong> Click the top summary cards to see exactly which MOs were created or closed today.</li>
+                    <li><strong>MO Closure:</strong> Once assembly is done, click "Complete MO" to lock the order and move it to Outgo.</li>
                   </ul>
                 </div>
 
                 <div style={{ marginBottom: 24 }}>
-                  <h4 style={{ color: '#2563eb', marginBottom: 8, fontSize: '1.1rem' }}>4. Administrator Privileges</h4>
+                  <h4 style={{ color: '#2563eb', marginBottom: 8, fontSize: '1.1rem' }}>4. Scrap, Rework & Returns</h4>
+                  <p className="text-sm text-muted" style={{ lineHeight: 1.6, marginBottom: 8 }}>
+                    Handle inventory discrepancies directly to keep Work-In-Progress (WIP) accurate:
+                  </p>
+                  <ul className="text-sm text-muted" style={{ paddingLeft: 20, lineHeight: 1.6 }}>
+                    <li><strong>Scrap:</strong> Log defective parts. "Reject" means the part is permanently lost. "Receive" means it was replaced from the warehouse.</li>
+                    <li><strong>Rework:</strong> Log parts sent out for fixing. Returned reworks behave similarly to Scrap Receives.</li>
+                    <li><strong>Return MO:</strong> In the User Dashboard, click the red "Return MO" box. You can return a Full MO or specific excess components. <em>Returning a component physically reduces your collected inventory.</em></li>
+                  </ul>
+                </div>
+
+                <div style={{ marginBottom: 24 }}>
+                  <h4 style={{ color: '#2563eb', marginBottom: 8, fontSize: '1.1rem' }}>5. R&D Module</h4>
+                  <p className="text-sm text-muted" style={{ lineHeight: 1.6, marginBottom: 8 }}>
+                    The <strong>R&D</strong> section allows logging of experimental product data.
+                  </p>
+                  <ul className="text-sm text-muted" style={{ paddingLeft: 20, lineHeight: 1.6 }}>
+                    <li>Select an active Product Code (managed by Admins), enter Pick Numbers, and set Result/Status.</li>
+                    <li>Supports adding multiple products simultaneously under the same Pick Number.</li>
+                  </ul>
+                </div>
+
+                <div style={{ marginBottom: 24 }}>
+                  <h4 style={{ color: '#2563eb', marginBottom: 8, fontSize: '1.1rem' }}>6. Admin Panel & WIP Reporting</h4>
                   <p className="text-sm text-muted" style={{ lineHeight: 1.6 }}>
-                    If you have an Admin account, click <strong>⚙️ Admin Panel</strong> to view system-wide stats. Admins have exclusive access to the <strong>Database Manager</strong>, where you can download `.csv` and `.json` system exports, or override data directly in the database.
+                    Admins can access the <strong>Admin Panel</strong> to manage Component Types, approve Access Controls, and view the <strong>WIP Report</strong>. The WIP Report automatically calculates: <br/>
+                    <code>WIP = (Collected + Replaced) - (Scrap Rejected + Assembled)</code>
                   </p>
                 </div>
 
                 <div className="alert alert-info" style={{ marginTop: 10 }}>
-                  <GlassIcon name="alert" size={14} color="#eab308" /> <strong>Pro Tip:</strong> Always double-check your quantities on the Confirmation Summary screen before submitting your plan!
+                  <GlassIcon name="alert" size={14} color="#eab308" /> <strong>Pro Tip:</strong> Use the Date Filters on the dashboard and reports to analyze specific production periods!
                 </div>
               </div>
               
