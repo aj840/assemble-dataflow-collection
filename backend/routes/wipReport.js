@@ -45,10 +45,10 @@ export const downloadWipExcel = (req, res) => {
   // IN  = sum of <compQtyField> across all MOs that used this component
   // RC  = sum of scrap.receive + rework.receive  where component == compType && componentName == name
   // RJ  = sum of scrap.reject  + rework.reject   where component == compType && componentName == name
-  // RT  = returns — Full MO: use mo.<compQtyField>; Component: use entry.componentQty
+  // RT  = returns — qty physically reduced from MO already; column shown for audit trail
   // OUT = sum of <compCompField> for Completed MOs that used this component
   //
-  // WIP = (IN + RC) − (RJ + RT + OUT)
+  // WIP = (IN + RC) − (RJ + OUT)  [IN is already net of Returns because the backend physically subtracts RT from mo qty fields]
   const calcStats = (name, category, mos, scrap, returns, reworks) => {
     const nameField = { batteries: 'battery', pcbas: 'pcba', coils: 'coil', shells: 'shell', lenses: 'lens'      }[category];
     const qtyField  = { batteries: 'batteryQty', pcbas: 'pcbaQty', coils: 'coilQty', shells: 'shellQty', lenses: 'lensQty'  }[category];
@@ -101,8 +101,8 @@ export const downloadWipExcel = (req, res) => {
       }
     });
 
-    // NEW formula: WIP = (IN + RC) − (RJ + RT + OUT)
-    const WIP = (IN + RC) - (RJ + RT + OUT);
+    // NEW formula: WIP = (IN + RC) − (RJ + OUT)
+    const WIP = (IN + RC) - (RJ + OUT);
     return { IN, RC, RJ, RT, OUT, WIP };
   };
 
@@ -126,7 +126,7 @@ export const downloadWipExcel = (req, res) => {
   // Title rows
   wsData.push(['UltraHuman Assembly — WIP Material Report (Component-Wise)']);
   wsData.push([`Period: ${periodLabel}`]);
-  wsData.push([`Formula: WIP = (IN + RC) − (RJ + RT + OUT)`]);
+  wsData.push([`Formula: WIP = (IN + RC) − (RJ + OUT)  [IN is already net of RT]`]);
   wsData.push([]); // spacer
 
   // Header row
@@ -198,8 +198,8 @@ export const downloadWipExcel = (req, res) => {
   });
 
   // Grand total row
-  const grandWIP  = (grandIN  + grandRC)  - (grandRJ  + grandRT  + grandOUT);
-  const grandPWIP = (grandPIN + grandPRC) - (grandPRJ + grandPRT + grandPOUT);
+  const grandWIP  = (grandIN  + grandRC)  - (grandRJ  + grandOUT);
+  const grandPWIP = (grandPIN + grandPRC) - (grandPRJ + grandPOUT);
   wsData.push([]);
   wsData.push([
     '★ GRAND TOTAL (All Components)',

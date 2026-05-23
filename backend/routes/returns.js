@@ -60,30 +60,40 @@ export const createReturnEntry = async (req, res) => {
 
   db.data.returnEntries.push(entry);
 
-  // If full MO return → mark MO as Returned
-  if (isFullMO) {
-    const mo = db.data.moEntries.find(e => e.id === moId);
-    if (mo) {
-      mo.status = 'Returned';
-      mo.returnedAt = now;
-    }
-  } else if (component) {
-    // Partial component return — mark that component as returned/pending re-entry
-    const mo = db.data.moEntries.find(e => e.id === moId);
-    if (mo) {
-      // Reset that component's comp qty to 0 so it needs re-entry before MO close
-      const compMap = { Battery: 'batteryComp', PCBA: 'pcbaComp', Coil: 'coilComp', Shell: 'shellComp' };
-      const key = compMap[component];
-      if (key) mo[key] = 0;
-      // Store which components are pending return
+  // Apply physical reduction to the MO collected quantities
+  const mo = db.data.moEntries.find(e => e.id === moId);
+  if (mo) {
+    if (isFullMO) {
+      mo.qty = Math.max(0, (mo.qty || 0) - entry.componentQty);
+      if (mo.batteryQty !== undefined) mo.batteryQty = Math.max(0, mo.batteryQty - entry.componentQty);
+      if (mo.pcbaQty !== undefined)    mo.pcbaQty    = Math.max(0, mo.pcbaQty - entry.componentQty);
+      if (mo.coilQty !== undefined)    mo.coilQty    = Math.max(0, mo.coilQty - entry.componentQty);
+      if (mo.shellQty !== undefined)   mo.shellQty   = Math.max(0, mo.shellQty - entry.componentQty);
+      if (mo.lensQty !== undefined)    mo.lensQty    = Math.max(0, mo.lensQty - entry.componentQty);
+      
+      if (mo.qty === 0) {
+        mo.status = 'Returned';
+        mo.returnedAt = now;
+      }
+    } else if (component) {
+      // Partial component return — reduce collected quantity of that specific component
+      const maxMap = { Battery: 'batteryQty', PCBA: 'pcbaQty', Coil: 'coilQty', Shell: 'shellQty', Lens: 'lensQty' };
+      const maxKey = maxMap[component];
+      
+      if (maxKey) {
+        if (mo[maxKey] === undefined) mo[maxKey] = mo.qty || 0; // Initialize if it was relying on fallback
+        mo[maxKey] = Math.max(0, mo[maxKey] - entry.componentQty);
+      }
+      
+      // Store which components were returned for historical visibility
       if (!mo.pendingReturns) mo.pendingReturns = [];
-      mo.pendingReturns.push({ component, qty: parseInt(componentQty) || 0, returnedAt: now });
+      mo.pendingReturns.push({ component, qty: entry.componentQty, returnedAt: now });
     }
   }
 
   db.data.auditLogs.unshift({
     id: randomUUID(),
-    action: `Return: MO ${moNumber} — ${isFullMO ? 'Full MO returned' : `${component} component returned (${componentQty})`}`,
+    action: `Return: MO ${moNumber} — ${isFullMO ? `Full MO return (${entry.componentQty})` : `${component} component returned (${componentQty})`}`,
     user: submittedBy,
     time: now,
   });
@@ -122,8 +132,9 @@ export const replenishReturnEntry = async (req, res) => {
       const maxKey = maxMap[entry.component];
       
       // Restore the quantity to the required amount
-      if (key && maxKey) {
-        mo[key] = mo[maxKey] !== undefined ? mo[maxKey] : mo.qty;
+      if (maxKey) {
+        if (mo[maxKey] === undefined) mo[maxKey] = mo.qty || 0;
+        mo[maxKey] += (entry.componentQty || 0); // Give back the returned quantity
       }
     }
   }

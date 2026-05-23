@@ -12,6 +12,7 @@ import AdminDBManager from './AdminDBManager';
 import AdminTrash from './AdminTrash';
 import AdminRndProducts from './AdminRndProducts';
 import AdminRndData from './AdminRndData';
+import WipReport from './WipReport';
 import GlassIcon from '../../components/GlassIcon';
 
 const NAV = [
@@ -24,6 +25,7 @@ const NAV = [
   { id: 'components',  icon: 'settings',  label: 'Component Types' },
   { id: 'rnddata',     icon: 'history',   label: 'R&D Data' },
   { id: 'rndproducts', icon: 'settings',  label: 'R&D Products' },
+  { id: 'wipreport',   icon: 'clock',     label: 'WIP Report' },
   { id: 'access',      icon: 'export',    label: 'Access Controls' },
   { id: 'audit',       icon: 'audit',     label: 'Audit Log' },
 ];
@@ -44,6 +46,7 @@ export default function AdminLayout({ onBack }) {
       case 'components': return <ComponentTypes />;
       case 'rnddata':    return <AdminRndData />;
       case 'rndproducts':return <AdminRndProducts />;
+      case 'wipreport':  return <WipReport />;
       case 'access':     return <AccessControls />;
       case 'audit':      return <AuditLog />;
       default:           return <AdminDashboard onNavigate={setActive} />;

@@ -42,6 +42,7 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
   const [returnError, setReturnError] = useState('');
 
   const [returnHistory, setReturnHistory] = useState([]);
+  const [scrapEntries, setScrapEntries] = useState([]);
 
   // Low Component Alert
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -106,9 +107,66 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
     setReturnError('');
     setReturnSearch('');
     try {
-      const data = await api.getMOs({ status: 'Pending' });
-      setReturnMOs(data);
+      const [mosData, scrapData] = await Promise.all([
+        api.getMOs({ status: 'Pending' }),
+        api.getScrap()
+      ]);
+      setReturnMOs(mosData);
+      setScrapEntries(scrapData);
     } catch (e) { console.error(e); }
+  };
+
+  const getReturnableQty = (mo, type) => {
+    if (!mo) return 0;
+    const comps = type === 'FullMO' 
+      ? ['Battery', 'PCBA', 'Shell', ...(mo.isProRing ? ['Lens'] : ['Coil'])] 
+      : [type];
+    
+    let minReturnable = Infinity;
+    
+    comps.forEach(compType => {
+      // 1. Collected Qty (WIP IN)
+      const qtyMap = { Battery: 'batteryQty', PCBA: 'pcbaQty', Coil: 'coilQty', Shell: 'shellQty', Lens: 'lensQty' };
+      const collected = mo[qtyMap[compType]] !== undefined ? mo[qtyMap[compType]] : (mo.qty || 0);
+      
+      // 2. Assembled Qty (WIP OUT)
+      const compMap = { Battery: 'batteryComp', PCBA: 'pcbaComp', Coil: 'coilComp', Shell: 'shellComp', Lens: 'lensComp' };
+      const assembled = mo[compMap[compType]] || 0;
+
+      // 3. Scrap
+      let scrapReject = 0;
+      let scrapReceive = 0;
+      scrapEntries.forEach(s => {
+        if (s.moId === mo.id && s.component === compType) {
+          scrapReject += (s.reject || 0);
+          scrapReceive += (s.receive || 0);
+        }
+      });
+
+      // 4. Already Returned
+      let alreadyReturned = 0;
+      returnHistory.forEach(r => {
+        if (r.status !== 'Replenished' && r.moId === mo.id) {
+          if (r.isFullMO) {
+            alreadyReturned += (r.componentQty || 0);
+          } else if (r.component === compType) {
+            alreadyReturned += (r.componentQty || 0);
+          }
+        }
+      });
+
+      // Max returnable = Collected - Assembled - ScrapReject + ScrapReceive - AlreadyReturned
+      // Note: If components were already returned, the backend might have already reduced `batteryQty`.
+      // If the backend physically reduces `batteryQty`, then `alreadyReturned` should NOT be subtracted here 
+      // because `collected` is ALREADY smaller! 
+      // Since we are changing the backend to physically reduce the MO qty, we ONLY subtract Assembled and Scrap.
+      let returnable = collected - assembled - scrapReject + scrapReceive;
+      if (returnable < 0) returnable = 0;
+      
+      if (returnable < minReturnable) minReturnable = returnable;
+    });
+
+    return minReturnable === Infinity ? 0 : minReturnable;
   };
 
   const getCompQty = (mo, type) => {
@@ -121,11 +179,17 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
   const submitReturn = async () => {
     if (!returnSelMO) { setReturnError('Select an MO first.'); return; }
     if (!returnType)  { setReturnError('Select what to return.'); return; }
-    if (returnType !== 'FullMO' && !returnQty) { setReturnError('Enter quantity.'); return; }
+    if (!returnQty) { setReturnError('Enter quantity to return.'); return; }
     
-    const availQty = getCompQty(returnSelMO, returnType);
-    if (returnType !== 'FullMO' && availQty === 0) {
-      setReturnError(`Cannot return ${returnType}. It is already 0 qty.`);
+    const availQty = getReturnableQty(returnSelMO, returnType);
+    const qtyToReturn = parseInt(returnQty) || 0;
+    
+    if (qtyToReturn > availQty) {
+      setReturnError(`Cannot return ${qtyToReturn}. Only ${availQty} available for ${returnType}.`);
+      return;
+    }
+    if (qtyToReturn <= 0) {
+      setReturnError(`Return quantity must be greater than 0.`);
       return;
     }
 
@@ -138,7 +202,7 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
         sku: returnSelMO.sku,
         returnType: returnType === 'FullMO' ? 'FullMO' : 'Component',
         component: returnType !== 'FullMO' ? returnType : '',
-        componentQty: returnType !== 'FullMO' ? parseInt(returnQty) : 0,
+        componentQty: qtyToReturn,
         isFullMO: returnType === 'FullMO',
         submittedBy: user?.fullName,
       });
@@ -1061,15 +1125,15 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
                           ].map(t => {
                             const colors = { Battery:'#2563eb', PCBA:'#16a34a', Coil:'#7c3aed', Shell:'#d97706', Lens:'#e67e22', FullMO:'#dc2626' };
                             const col = colors[t];
-                            const availQty = getCompQty(returnSelMO, t);
-                            const isZero = t !== 'FullMO' && availQty === 0;
+                            const availQty = getReturnableQty(returnSelMO, t);
+                            const isZero = availQty === 0;
 
                             return (
                               <button
                                 key={t}
                                 onClick={() => { 
                                   if (isZero) {
-                                    setReturnError(`${t} is already 0 qty.`);
+                                    setReturnError(`${t} has 0 returnable quantity.`);
                                     return;
                                   }
                                   setReturnType(t); 
@@ -1086,29 +1150,37 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
                                 }}
                               >
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>{t === 'FullMO' ? <><GlassIcon name="inbox" size={14} color={col} /> Full MO Return</> : t}</div>
-                                {isZero && <div style={{ fontSize: 10, marginTop: 4, color: '#dc2626' }}>(0 qty)</div>}
+                                <div style={{ fontSize: 10, marginTop: 4, color: isZero ? '#dc2626' : '#6b7280' }}>({availQty} avail)</div>
                               </button>
                             );
                           })}
                         </div>
                       </div>
                       
-                      {returnType && returnType !== 'FullMO' && (
+                      {returnType && (
                         <div className="form-group" style={{ marginBottom: 0, marginTop: 8 }}>
                           <label>Return Quantity ({returnType})</label>
-                          <input type="number" min="1" placeholder="Enter quantity to return" value={returnQty} onChange={e => setReturnQty(e.target.value)} style={{ padding: '10px 12px', fontSize: 14 }} />
+                          <input 
+                            type="number" 
+                            min="1" 
+                            max={getReturnableQty(returnSelMO, returnType)}
+                            placeholder={`Enter quantity (max ${getReturnableQty(returnSelMO, returnType)})`} 
+                            value={returnQty} 
+                            onChange={e => setReturnQty(e.target.value)} 
+                            style={{ padding: '10px 12px', fontSize: 14 }} 
+                          />
                         </div>
                       )}
                       
                       <div style={{ marginTop: 'auto', paddingTop: 16 }}>
                         {returnType === 'FullMO' && (
                           <div className="alert alert-warning" style={{ marginBottom: 0 }}>
-                            <div style={{ display: 'flex', gap: 6 }}><GlassIcon name="warning" size={14} color="#b45309" /> <span>Selecting <strong>Full MO</strong> will move this MO to the Return database and mark it as Returned.</span></div>
+                            <div style={{ display: 'flex', gap: 6 }}><GlassIcon name="warning" size={14} color="#b45309" /> <span>Selecting <strong>Full MO</strong> will physically reduce the quantities of ALL components on this MO. If MO quantity reaches 0, it will be marked as Returned.</span></div>
                           </div>
                         )}
                         {returnType && returnType !== 'FullMO' && (
                           <div className="alert alert-info" style={{ marginBottom: 0 }}>
-                            <div style={{ display: 'flex', gap: 6 }}><GlassIcon name="alert" size={14} color="#2563eb" /> <span>The <strong>{returnType}</strong> component will be reset. The MO will wait for new component entry before it can be closed.</span></div>
+                            <div style={{ display: 'flex', gap: 6 }}><GlassIcon name="alert" size={14} color="#2563eb" /> <span>The <strong>{returnType}</strong> component's collected quantity will be reduced. The WIP report will accurately reflect this return.</span></div>
                           </div>
                         )}
                       </div>
