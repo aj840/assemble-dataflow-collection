@@ -47,6 +47,9 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
   // Low Component Alert
   const [showAlertModal, setShowAlertModal] = useState(false);
 
+  // Income / Outgo Today popup
+  const [todayModal, setTodayModal] = useState(null); // null | 'income' | 'outgo'
+
   const [subView, setSubView] = useState('main'); // 'main' | 'mos' | 'returns'
   const [moSearch, setMoSearch] = useState('');
   const [filterPlanDate, setFilterPlanDate] = useState('');
@@ -403,17 +406,30 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
         {/* Stats + Return Box */}
         <div className="stats-grid" style={{ marginBottom: 24, gridTemplateColumns: 'repeat(5, 1fr)' }}>
           {[
-            { label: 'Total QTY Planned', value: totalPlanned.toLocaleString(), icon: 'document', color: '#2563eb' },
-            { label: 'Completed QTY',     value: totalCompleted.toLocaleString(), icon: 'database', color: '#16a34a' },
-            { label: 'Pending Balance',   value: totalPending.toLocaleString(), icon: 'audit', color: '#d97706' },
-            { label: 'Income Today',      value: stats?.incomeToday || 0, icon: 'export', color: '#7c3aed' },
+            { label: 'Total QTY Planned', value: totalPlanned.toLocaleString(), icon: 'document', color: '#2563eb', onClick: null },
+            { label: 'Completed QTY',     value: totalCompleted.toLocaleString(), icon: 'database', color: '#16a34a', onClick: null },
+            { label: 'Pending Balance',   value: totalPending.toLocaleString(), icon: 'audit', color: '#d97706', onClick: null },
+            { label: 'Income Today',      value: stats?.incomeToday || 0, icon: 'export', color: '#7c3aed', onClick: () => setTodayModal('income') },
           ].map(s => (
-            <div key={s.label} className="card stat-card" style={{ padding: '24px 20px' }}>
+            <div
+              key={s.label}
+              className="card stat-card"
+              style={{
+                padding: '24px 20px',
+                cursor: s.onClick ? 'pointer' : 'default',
+                transition: 'all 0.2s',
+              }}
+              onClick={s.onClick}
+              onMouseEnter={e => { if (s.onClick) { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; } }}
+              onMouseLeave={e => { if (s.onClick) { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; } }}
+              title={s.onClick ? `Click to see ${s.label} details` : undefined}
+            >
               <div className="stat-label">
                 <GlassIcon name={s.icon} size={24} color={s.color} style={{ marginRight: 8 }} />
                 {s.label}
               </div>
               <div className="stat-value" style={{ color: s.color, marginTop: 12, fontSize: '2.5rem' }}>{s.value}</div>
+              {s.onClick && <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4 }}>Click to view list</div>}
             </div>
           ))}
           {/* Return Box */}
@@ -443,12 +459,20 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
             <div className="stat-value" style={{ color: '#4f46e5', marginTop: 12, fontSize: '2.5rem' }}>{stats?.totalMOs || mos.length}</div>
           </div>
           
-          <div className="card stat-card" style={{ padding: '24px 20px', gridColumn: 'span 2' }}>
+          <div
+            className="card stat-card"
+            style={{ padding: '24px 20px', gridColumn: 'span 2', cursor: 'pointer', transition: 'all 0.2s' }}
+            onClick={() => setTodayModal('outgo')}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(16,185,129,0.15)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+            title="Click to see today's closed MOs"
+          >
             <div className="stat-label">
               <GlassIcon name="check" size={24} color="#10b981" style={{ marginRight: 8 }} />
               Outgo Today (MO Closed)
             </div>
             <div className="stat-value" style={{ color: '#10b981', marginTop: 12, fontSize: '2.5rem' }}>{stats?.outgoToday || 0}</div>
+            <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4 }}>Click to view list</div>
           </div>
 
           <div
@@ -1281,6 +1305,73 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setShowAlertModal(false)}>Close</button>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* Income / Outgo Today Modal */}
+      {todayModal && (
+        <ModalPortal>
+          <div className="modal-overlay" onClick={() => setTodayModal(null)}>
+            <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 700 }}>
+              <div className="modal-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <GlassIcon name={todayModal === 'income' ? 'export' : 'check'} size={20} color={todayModal === 'income' ? '#7c3aed' : '#10b981'} />
+                  <h3>{todayModal === 'income' ? 'Income Today (New MOs)' : 'Outgo Today (Closed MOs)'}</h3>
+                </div>
+                <button className="btn-icon" onClick={() => setTodayModal(null)}>✕</button>
+              </div>
+              <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                {(() => {
+                  const todayStr = new Date().toISOString().split('T')[0];
+                  const list = mos.filter(mo => {
+                    if (todayModal === 'income') return mo.createdAt && mo.createdAt.startsWith(todayStr);
+                    if (todayModal === 'outgo') return mo.completedAt && mo.completedAt.startsWith(todayStr);
+                    return false;
+                  });
+
+                  if (list.length === 0) {
+                    return (
+                      <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9ca3af' }}>
+                        <GlassIcon name="document" size={48} color="#e5e7eb" style={{ marginBottom: 16 }} />
+                        <p>No MOs found for {todayModal} today.</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="table-wrapper" style={{ margin: 0, border: 'none' }}>
+                      <table style={{ width: '100%' }}>
+                        <thead style={{ position: 'sticky', top: 0, zIndex: 1, background: '#f9fafb' }}>
+                          <tr>
+                            <th>MO Number</th>
+                            <th>SKU</th>
+                            <th>Target Qty</th>
+                            {todayModal === 'outgo' && <th>Completed Qty</th>}
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {list.map(mo => (
+                            <tr key={mo.id}>
+                              <td style={{ fontWeight: 600, color: '#1e40af' }}>{mo.moNumber}</td>
+                              <td style={{ color: '#4b5563' }}>{mo.sku}</td>
+                              <td style={{ fontWeight: 600 }}>{mo.qty}</td>
+                              {todayModal === 'outgo' && <td style={{ fontWeight: 700, color: '#16a34a' }}>{mo.completedQty || 0}</td>}
+                              <td>
+                                <span className={`badge badge-${mo.status === 'Completed' ? 'success' : 'warning'}`}>
+                                  {mo.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
