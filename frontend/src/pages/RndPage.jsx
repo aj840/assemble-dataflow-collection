@@ -6,7 +6,15 @@ import { api } from '../services/api';
 export default function RndPage({ onBack, onDashboard }) {
   const { user } = useAuth();
   const [catalog, setCatalog] = useState([]);
-  const [form, setForm] = useState({ code: '', description: '', category: '' });
+  const [form, setForm] = useState({
+    code: '',
+    description: '',
+    category: '',
+    pickNumber: '',
+    acceptReject: 'Accept',
+    receivedCount: '',
+    remark: '',
+  });
   const [message, setMessage] = useState({ type: '', text: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [codeMatch, setCodeMatch] = useState(null); // null=untouched, false=no match, true=match
@@ -51,9 +59,16 @@ export default function RndPage({ onBack, onDashboard }) {
 
     try {
       await api.createRndEntry({ ...form, submittedBy: user?.fullName || 'Unknown' });
-      
       setMessage({ type: 'success', text: 'R&D data successfully logged.' });
-      setForm({ code: '', description: '', category: '' });
+      setForm({
+        code: '',
+        description: '',
+        category: '',
+        pickNumber: '',
+        acceptReject: 'Accept',
+        receivedCount: '',
+        remark: '',
+      });
       setCodeMatch(null);
     } catch (err) {
       setMessage({ type: 'error', text: err.message });
@@ -61,6 +76,9 @@ export default function RndPage({ onBack, onDashboard }) {
       setIsSubmitting(false);
     }
   };
+
+  const inputStyle = { fontSize: '0.95rem', padding: '10px 14px' };
+  const labelStyle = { display: 'block', marginBottom: 8, fontWeight: 600, fontSize: '0.82rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: '#6b7280' };
 
   return (
     <div style={{ minHeight: '100vh', background: '#f9fafb' }}>
@@ -89,7 +107,7 @@ export default function RndPage({ onBack, onDashboard }) {
         </div>
       </nav>
 
-      <div style={{ maxWidth: 800, margin: '40px auto', padding: '0 24px' }}>
+      <div style={{ maxWidth: 860, margin: '40px auto', padding: '0 24px' }}>
         <div style={{ marginBottom: 32 }}>
           <h1 style={{ fontSize: '2rem', marginBottom: 8 }}>R&D Module</h1>
           <p className="text-muted">Log experimental entries. Enter a valid product code to automatically load description and category.</p>
@@ -103,55 +121,137 @@ export default function RndPage({ onBack, onDashboard }) {
           )}
 
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: 20 }}>
-              <label className="text-sm font-medium" style={{ display: 'block', marginBottom: 8 }}>Product Code</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                placeholder="Enter code (e.g. RD-001)" 
-                value={form.code} 
-                onChange={handleCodeChange} 
-                required 
-                style={{ fontSize: '1.1rem', padding: '12px' }}
-              />
+            {/* Row 1: Code + auto-fill status */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={labelStyle}>Product Code</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Enter code (e.g. RD-001)"
+                  value={form.code}
+                  onChange={handleCodeChange}
+                  required
+                  style={{ ...inputStyle, fontSize: '1.05rem', paddingRight: 40 }}
+                />
+                {codeMatch === true && (
+                  <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#16a34a', fontSize: 18 }}>✓</span>
+                )}
+                {codeMatch === false && (
+                  <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#ef4444', fontSize: 18 }}>✗</span>
+                )}
+              </div>
               <p className="text-xs text-muted" style={{ marginTop: 6 }}>
-                Matches against {catalog.length} products in the database.
+                {codeMatch === true && <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Matched — description &amp; category auto-filled</span>}
+                {codeMatch === false && <span style={{ color: '#ef4444' }}>No match found — fill description &amp; category manually</span>}
+                {codeMatch === null && `Matches against ${catalog.length} products in the database.`}
               </p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 32 }}>
+            {/* Row 2: Description + Category */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
               <div>
-                <label className="text-sm font-medium" style={{ display: 'block', marginBottom: 8 }}>Product Description</label>
-                <input 
-                  type="text" 
-                  className="input-field" 
-                  placeholder="Auto-filled or manual entry" 
-                  value={form.description} 
-                  onChange={e => setForm({ ...form, description: e.target.value })} 
-                  required 
+                <label style={labelStyle}>Product Description</label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Auto-filled or manual entry"
+                  value={form.description}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
+                  required
+                  style={inputStyle}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium" style={{ display: 'block', marginBottom: 8 }}>Product Category</label>
-                <input 
-                  type="text" 
-                  className="input-field" 
-                  placeholder="Auto-filled or manual entry" 
-                  value={form.category} 
-                  onChange={e => setForm({ ...form, category: e.target.value })} 
-                  required 
+                <label style={labelStyle}>Product Category</label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Auto-filled or manual entry"
+                  value={form.category}
+                  onChange={e => setForm({ ...form, category: e.target.value })}
+                  required
+                  style={inputStyle}
                 />
               </div>
             </div>
 
-            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 24, display: 'flex', justifyContent: 'flex-end' }}>
-              <button 
-                type="submit" 
-                className="btn btn-primary" 
-                disabled={isSubmitting || !form.code || !form.description || !form.category}
-                style={{ minWidth: 150, height: 44, fontSize: '1.05rem' }}
+            {/* Divider */}
+            <div style={{ borderTop: '1px dashed #e5e7eb', margin: '4px 0 24px' }} />
+
+            {/* Row 3: Pick Number + Accept/Reject + Received Count */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20, marginBottom: 24 }}>
+              <div>
+                <label style={labelStyle}>Pick Number</label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="e.g. PKG-042"
+                  value={form.pickNumber}
+                  onChange={e => setForm({ ...form, pickNumber: e.target.value })}
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Result / Status</label>
+                <select
+                  className="input-field"
+                  value={form.acceptReject}
+                  onChange={e => setForm({ ...form, acceptReject: e.target.value })}
+                  style={{ ...inputStyle, cursor: 'pointer' }}
+                >
+                  <option value="Accept">✅ Accept</option>
+                  <option value="Reject">❌ Reject</option>
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Received Count</label>
+                <input
+                  type="number"
+                  className="input-field"
+                  placeholder="0"
+                  min="0"
+                  value={form.receivedCount}
+                  onChange={e => setForm({ ...form, receivedCount: e.target.value })}
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            {/* Row 4: Remark */}
+            <div style={{ marginBottom: 32 }}>
+              <label style={labelStyle}>Remark</label>
+              <input
+                type="text"
+                className="input-field"
+                placeholder="Optional note or observation..."
+                value={form.remark}
+                onChange={e => setForm({ ...form, remark: e.target.value })}
+                style={inputStyle}
+              />
+            </div>
+
+            {/* Submit */}
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 24, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setForm({ code: '', description: '', category: '', pickNumber: '', acceptReject: 'Accept', receivedCount: '', remark: '' });
+                  setCodeMatch(null);
+                  setMessage({ type: '', text: '' });
+                }}
+                style={{ minWidth: 100, height: 44 }}
               >
-                {isSubmitting ? 'Submitting...' : 'Log R&D Entry'}
+                Clear
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isSubmitting || !form.code || !form.description || !form.category}
+                style={{ minWidth: 160, height: 44, fontSize: '1.0rem' }}
+              >
+                {isSubmitting ? 'Submitting…' : 'Log R&D Entry'}
               </button>
             </div>
           </form>

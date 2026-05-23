@@ -9,7 +9,7 @@ import { downloadWipExcel } from './routes/wipReport.js';
 import { getScrapEntries, createScrapEntry, updateScrapEntry, deleteScrapEntry, exportScrapExcel } from './routes/scrap.js';
 import { getReturnEntries, createReturnEntry, deleteReturnEntry, replenishReturnEntry } from './routes/returns.js';
 import { getReworkEntries, createReworkEntry, updateReworkEntry, deleteReworkEntry, exportReworkExcel } from './routes/rework.js';
-import { getRndProducts, createRndProduct, deleteRndProduct, getRndEntries, createRndEntry, exportRndExcel } from './routes/rnd.js';
+import { getRndProducts, createRndProduct, updateRndProduct, deleteRndProduct, getRndEntries, createRndEntry, updateRndEntry, deleteRndEntry, exportRndExcel } from './routes/rnd.js';
 import { visionUpload, extractFromImage } from './routes/vision.js';
 import { mkdirSync } from 'fs';
 
@@ -58,9 +58,12 @@ app.get('/api/rework/export', exportReworkExcel);
 // --- R&D ---
 app.get('/api/rnd/products', getRndProducts);
 app.post('/api/rnd/products', createRndProduct);
+app.put('/api/rnd/products/:id', updateRndProduct);
 app.delete('/api/rnd/products/:id', deleteRndProduct);
 app.get('/api/rnd/entries', getRndEntries);
 app.post('/api/rnd/entries', createRndEntry);
+app.put('/api/rnd/entries/:id', updateRndEntry);
+app.delete('/api/rnd/entries/:id', deleteRndEntry);
 app.get('/api/rnd/export', exportRndExcel);
 
 // --- Admin: Config ---

@@ -21,22 +21,39 @@ export default function RndDashboard({ onBack, onNewEntry }) {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
   const filtered = entries.filter(e =>
     !search ||
     e.code?.toLowerCase().includes(search.toLowerCase()) ||
     e.description?.toLowerCase().includes(search.toLowerCase()) ||
-    e.category?.toLowerCase().includes(search.toLowerCase())
+    e.category?.toLowerCase().includes(search.toLowerCase()) ||
+    e.pickNumber?.toLowerCase().includes(search.toLowerCase()) ||
+    e.remark?.toLowerCase().includes(search.toLowerCase())
   );
 
   // Stats
-  const totalEntries = entries.length;
-  const myEntries = entries.filter(e => e.submittedBy === user?.fullName).length;
-  const uniqueCodes = [...new Set(entries.map(e => e.code))].length;
-  const uniqueCategories = [...new Set(entries.map(e => e.category))].length;
+  const totalEntries  = entries.length;
+  const myEntries     = entries.filter(e => e.submittedBy === user?.fullName).length;
+  const accepted      = entries.filter(e => e.acceptReject === 'Accept').length;
+  const rejected      = entries.filter(e => e.acceptReject === 'Reject').length;
+
+  const StatusBadge = ({ value }) => {
+    const isAccept = value === 'Accept';
+    return (
+      <span style={{
+        background: isAccept ? '#f0fdf4' : '#fff1f2',
+        color: isAccept ? '#16a34a' : '#dc2626',
+        padding: '2px 10px',
+        borderRadius: 20,
+        fontSize: 12,
+        fontWeight: 700,
+        letterSpacing: 0.3,
+      }}>
+        {isAccept ? '✅ Accept' : '❌ Reject'}
+      </span>
+    );
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#f9fafb' }}>
@@ -75,7 +92,7 @@ export default function RndDashboard({ onBack, onNewEntry }) {
         </div>
       </nav>
 
-      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
           <h1 style={{ fontSize: '2rem', marginBottom: 8 }}>R&D Dashboard</h1>
@@ -86,9 +103,9 @@ export default function RndDashboard({ onBack, onNewEntry }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 28 }}>
           {[
             { label: 'Total Entries', value: totalEntries, color: '#2563eb', icon: 'database' },
-            { label: 'My Entries', value: myEntries, color: '#16a34a', icon: 'plan' },
-            { label: 'Product Codes', value: uniqueCodes, color: '#7c3aed', icon: 'card' },
-            { label: 'Categories', value: uniqueCategories, color: '#d97706', icon: 'shield' },
+            { label: 'My Entries',    value: myEntries,    color: '#7c3aed', icon: 'plan' },
+            { label: 'Accepted',      value: accepted,     color: '#16a34a', icon: 'card' },
+            { label: 'Rejected',      value: rejected,     color: '#dc2626', icon: 'shield' },
           ].map(stat => (
             <div key={stat.label} className="card" style={{ padding: '18px 20px', textAlign: 'center' }}>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
@@ -102,12 +119,12 @@ export default function RndDashboard({ onBack, onNewEntry }) {
           ))}
         </div>
 
-        {/* Search / Filter Bar */}
+        {/* Search Bar */}
         <div className="card" style={{ padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
           <GlassIcon name="search" size={16} color="#6b7280" />
           <input
             className="input-field"
-            placeholder="Search by code, description or category..."
+            placeholder="Search by code, description, category, pick number or remark…"
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 14 }}
@@ -131,7 +148,7 @@ export default function RndDashboard({ onBack, onNewEntry }) {
           {loading ? (
             <div style={{ textAlign: 'center', padding: 48 }}>
               <span className="spinner" style={{ display: 'inline-block' }} />
-              <p className="text-muted" style={{ marginTop: 12 }}>Loading...</p>
+              <p className="text-muted" style={{ marginTop: 12 }}>Loading…</p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="empty-state" style={{ padding: '48px 24px', textAlign: 'center' }}>
@@ -156,6 +173,10 @@ export default function RndDashboard({ onBack, onNewEntry }) {
                     <th>Product Code</th>
                     <th>Description</th>
                     <th>Category</th>
+                    <th>Pick #</th>
+                    <th>Status</th>
+                    <th style={{ textAlign: 'center' }}>Received</th>
+                    <th>Remark</th>
                     <th>Submitted By</th>
                     <th>Submitted At</th>
                   </tr>
@@ -166,25 +187,28 @@ export default function RndDashboard({ onBack, onNewEntry }) {
                       <td style={{ color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
                       <td>
                         <span style={{
-                          background: '#eff6ff',
-                          color: '#2563eb',
-                          padding: '3px 10px',
-                          borderRadius: 20,
-                          fontSize: 13,
-                          fontWeight: 700,
-                          letterSpacing: 0.5,
+                          background: '#eff6ff', color: '#2563eb',
+                          padding: '3px 10px', borderRadius: 20,
+                          fontSize: 13, fontWeight: 700, letterSpacing: 0.5,
                         }}>{e.code}</span>
                       </td>
-                      <td style={{ fontSize: 13, color: '#374151' }}>{e.description}</td>
+                      <td style={{ fontSize: 13, color: '#374151', maxWidth: 200 }}>{e.description}</td>
                       <td>
                         <span style={{
-                          background: '#f3f4f6',
-                          color: '#6b7280',
-                          padding: '2px 8px',
-                          borderRadius: 6,
-                          fontSize: 12,
-                          fontWeight: 500,
+                          background: '#f3f4f6', color: '#6b7280',
+                          padding: '2px 8px', borderRadius: 6,
+                          fontSize: 12, fontWeight: 500,
                         }}>{e.category}</span>
+                      </td>
+                      <td style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>
+                        {e.pickNumber || <span style={{ color: '#d1d5db' }}>—</span>}
+                      </td>
+                      <td><StatusBadge value={e.acceptReject} /></td>
+                      <td style={{ textAlign: 'center', fontWeight: 700, color: '#374151' }}>
+                        {e.receivedCount ?? 0}
+                      </td>
+                      <td style={{ fontSize: 12, color: '#6b7280', maxWidth: 180 }}>
+                        {e.remark || <span style={{ color: '#d1d5db' }}>—</span>}
                       </td>
                       <td style={{ fontSize: 13, fontWeight: 500, color: e.submittedBy === user?.fullName ? '#2563eb' : '#374151' }}>
                         {e.submittedBy === user?.fullName ? '👤 You' : e.submittedBy}
