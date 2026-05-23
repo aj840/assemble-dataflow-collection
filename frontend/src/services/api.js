@@ -71,6 +71,11 @@ export const api = {
   deleteRework: (id) => req(`/rework/${id}`, { method: 'DELETE' }),
   exportReworkUrl: (params = {}) => `${API}/rework/export?${new URLSearchParams(params).toString()}`,
   getRnd: (params = {}) => req('/rnd/entries?' + new URLSearchParams(params).toString()),
+  createRndEntry: (body) => req('/rnd/entries', { method: 'POST', body }),
+  getRndProducts: () => req('/rnd/products'),
+  createRndProduct: (body) => req('/rnd/products', { method: 'POST', body }),
+  deleteRndProduct: (id) => req(`/rnd/products/${id}`, { method: 'DELETE' }),
   exportRndUrl: (params = {}) => `${API}/rnd/export?${new URLSearchParams(params).toString()}`,
   exportWipUrl: (params = {}) => `${API}/stats/wip-excel?${new URLSearchParams(params).toString()}`,
+  exportBackupUrl: () => `${API}/admin/backup`,
 };

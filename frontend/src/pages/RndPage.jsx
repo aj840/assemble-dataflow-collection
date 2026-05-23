@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import GlassIcon from '../components/GlassIcon';
+import { api } from '../services/api';
 
 export default function RndPage({ onBack, onDashboard }) {
   const { user } = useAuth();
@@ -12,8 +13,7 @@ export default function RndPage({ onBack, onDashboard }) {
 
   // Fetch product catalog on mount
   useEffect(() => {
-    fetch('http://localhost:5000/api/rnd/products')
-      .then(res => res.json())
+    api.getRndProducts()
       .then(data => setCatalog(data))
       .catch(err => console.error('Failed to fetch R&D catalog', err));
   }, []);
@@ -50,14 +50,7 @@ export default function RndPage({ onBack, onDashboard }) {
     setMessage({ type: '', text: '' });
 
     try {
-      const res = await fetch('http://localhost:5000/api/rnd/entries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, submittedBy: user?.fullName || 'Unknown' })
-      });
-      const data = await res.json();
-      
-      if (!res.ok) throw new Error(data.message || 'Failed to submit R&D data');
+      await api.createRndEntry({ ...form, submittedBy: user?.fullName || 'Unknown' });
       
       setMessage({ type: 'success', text: 'R&D data successfully logged.' });
       setForm({ code: '', description: '', category: '' });

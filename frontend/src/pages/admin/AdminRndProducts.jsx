@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import GlassIcon from '../../components/GlassIcon';
+import { api } from '../../services/api';
 
 export default function AdminRndProducts() {
   const [products, setProducts] = useState([]);
@@ -9,11 +10,8 @@ export default function AdminRndProducts() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/rnd/products');
-      if (res.ok) {
-        const data = await res.json();
-        setProducts(data);
-      }
+      const data = await api.getRndProducts();
+      setProducts(data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -29,13 +27,7 @@ export default function AdminRndProducts() {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/rnd/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to create product');
+      await api.createRndProduct(form);
       
       setForm({ code: '', description: '', category: '' });
       fetchProducts();
@@ -47,10 +39,8 @@ export default function AdminRndProducts() {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this product?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/rnd/products/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        fetchProducts();
-      }
+      await api.deleteRndProduct(id);
+      fetchProducts();
     } catch (err) {
       console.error(err);
     }

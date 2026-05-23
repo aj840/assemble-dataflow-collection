@@ -104,7 +104,7 @@ export default function DatabaseManager() {
   };
 
   const handleBackupDB = () => {
-    window.open('http://localhost:5000/api/admin/backup', '_blank');
+    window.open(api.exportBackupUrl(), '_blank');
   };
 
   const handleDelete = async (id) => {
