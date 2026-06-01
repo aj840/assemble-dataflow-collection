@@ -33,31 +33,43 @@ const req = async (url, opts = {}) => {
   }
 };
 
+const sanitizeParams = (p) => {
+  if (!p) return {};
+  const params = { ...p };
+  ['startDate', 'endDate'].forEach(key => {
+    // Convert YYYY-MM-DDTHH:mm (length 16) from datetime-local to absolute UTC ISO string
+    if (params[key] && params[key].length === 16) {
+      params[key] = new Date(params[key]).toISOString();
+    }
+  });
+  return params;
+};
+
 export const api = {
   login: (body) => req('/auth/login', { method: 'POST', body }),
   getConfig: () => req('/admin/config'),
   updateConfig: (body) => req('/admin/config', { method: 'POST', body }),
-  getMOs: (params = {}) => req('/mos?' + new URLSearchParams(params).toString()),
+  getMOs: (params = {}) => req('/mos?' + new URLSearchParams(sanitizeParams(params)).toString()),
   createMO: (body) => req('/mos', { method: 'POST', body }),
   updateMO: (id, body) => req(`/mos/${id}`, { method: 'PUT', body }),
   deleteMO: (id) => req(`/mos/${id}`, { method: 'DELETE' }),
   parseSKU: (body) => req('/mos/parse-sku', { method: 'POST', body }),
-  getStats: (params = {}) => req('/stats?' + new URLSearchParams(params).toString()),
-  getReport: (params = {}) => req('/stats/report?' + new URLSearchParams(params).toString()),
+  getStats: (params = {}) => req('/stats?' + new URLSearchParams(sanitizeParams(params)).toString()),
+  getReport: (params = {}) => req('/stats/report?' + new URLSearchParams(sanitizeParams(params)).toString()),
   getUsers: () => req('/admin/users'),
   createUser: (body) => req('/admin/users', { method: 'POST', body }),
   updateUser: (id, body) => req(`/admin/users/${id}`, { method: 'PUT', body }),
   deleteUser: (id) => req(`/admin/users/${id}`, { method: 'DELETE' }),
   getComponents: () => req('/admin/components'),
   manageComponent: (body) => req('/admin/components/manage', { method: 'POST', body }),
-  getAudit: (params = {}) => req('/admin/audit?' + new URLSearchParams(params).toString()),
-  deleteAuditLogs: (params) => req('/admin/audit?' + new URLSearchParams(params).toString(), { method: 'DELETE' }),
-  getScrap: (params = {}) => req('/scrap?' + new URLSearchParams(params).toString()),
+  getAudit: (params = {}) => req('/admin/audit?' + new URLSearchParams(sanitizeParams(params)).toString()),
+  deleteAuditLogs: (params) => req('/admin/audit?' + new URLSearchParams(sanitizeParams(params)).toString(), { method: 'DELETE' }),
+  getScrap: (params = {}) => req('/scrap?' + new URLSearchParams(sanitizeParams(params)).toString()),
   createScrap: (body) => req('/scrap', { method: 'POST', body }),
   updateScrap: (id, body) => req(`/scrap/${id}`, { method: 'PUT', body }),
   deleteScrap: (id) => req(`/scrap/${id}`, { method: 'DELETE' }),
-  exportScrapUrl: (params = {}) => `${API}/scrap/export?${new URLSearchParams(params).toString()}`,
-  getReturns: (params = {}) => req('/returns?' + new URLSearchParams(params).toString()),
+  exportScrapUrl: (params = {}) => `${API}/scrap/export?${new URLSearchParams(sanitizeParams(params)).toString()}`,
+  getReturns: (params = {}) => req('/returns?' + new URLSearchParams(sanitizeParams(params)).toString()),
   createReturn: (body) => req('/returns', { method: 'POST', body }),
   deleteReturn: (id) => req(`/returns/${id}`, { method: 'DELETE' }),
   replenishReturn: (id, body) => req(`/returns/${id}/replenish`, { method: 'PUT', body }),
@@ -65,12 +77,12 @@ export const api = {
   getTrash: () => req('/admin/trash'),
   bulkTrashAction: (body) => req('/admin/trash/action', { method: 'POST', body }),
   wipeAll: (body) => req('/admin/wipe-all', { method: 'POST', body }),
-  getRework: (params = {}) => req('/rework?' + new URLSearchParams(params).toString()),
+  getRework: (params = {}) => req('/rework?' + new URLSearchParams(sanitizeParams(params)).toString()),
   createRework: (body) => req('/rework', { method: 'POST', body }),
   updateRework: (id, body) => req(`/rework/${id}`, { method: 'PUT', body }),
   deleteRework: (id) => req(`/rework/${id}`, { method: 'DELETE' }),
-  exportReworkUrl: (params = {}) => `${API}/rework/export?${new URLSearchParams(params).toString()}`,
-  getRnd: (params = {}) => req('/rnd/entries?' + new URLSearchParams(params).toString()),
+  exportReworkUrl: (params = {}) => `${API}/rework/export?${new URLSearchParams(sanitizeParams(params)).toString()}`,
+  getRnd: (params = {}) => req('/rnd/entries?' + new URLSearchParams(sanitizeParams(params)).toString()),
   createRndEntry: (body) => req('/rnd/entries', { method: 'POST', body }),
   updateRndEntry: (id, body) => req(`/rnd/entries/${id}`, { method: 'PUT', body }),
   deleteRndEntry: (id, body) => req(`/rnd/entries/${id}`, { method: 'DELETE', body }),
@@ -78,7 +90,7 @@ export const api = {
   createRndProduct: (body) => req('/rnd/products', { method: 'POST', body }),
   updateRndProduct: (id, body) => req(`/rnd/products/${id}`, { method: 'PUT', body }),
   deleteRndProduct: (id) => req(`/rnd/products/${id}`, { method: 'DELETE' }),
-  exportRndUrl: (params = {}) => `${API}/rnd/export?${new URLSearchParams(params).toString()}`,
-  exportWipUrl: (params = {}) => `${API}/stats/wip-excel?${new URLSearchParams(params).toString()}`,
+  exportRndUrl: (params = {}) => `${API}/rnd/export?${new URLSearchParams(sanitizeParams(params)).toString()}`,
+  exportWipUrl: (params = {}) => `${API}/stats/wip-excel?${new URLSearchParams(sanitizeParams(params)).toString()}`,
   exportBackupUrl: () => `${API}/admin/backup`,
 };

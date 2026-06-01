@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { login } from './routes/auth.js';
 import { getMOs, createMO, updateMO, deleteMO, parseSKUPreview } from './routes/mos.js';
-import { getConfig, updateConfig, getUsers, createUser, updateUser, deleteUser, getComponents, manageComponents, getAuditLogs, deleteAuditLogs, backupDatabase, handleDbAction, getTrash, handleTrashAction, wipeAllData } from './routes/admin.js';
+import { getConfig, updateConfig, getUsers, createUser, updateUser, deleteUser, getComponents, manageComponents, getAuditLogs, deleteAuditLogs, backupDatabase, handleDbAction, getTrash, handleTrashAction, wipeAllData, runWipFixer } from './routes/admin.js';
 import { getStats, getReport } from './routes/stats.js';
 import { downloadWipExcel } from './routes/wipReport.js';
 import { getScrapEntries, createScrapEntry, updateScrapEntry, deleteScrapEntry, exportScrapExcel } from './routes/scrap.js';
@@ -96,6 +96,7 @@ app.post('/api/admin/db/action', handleDbAction);
 app.get('/api/admin/trash', getTrash);
 app.post('/api/admin/trash/action', handleTrashAction);
 app.post('/api/admin/wipe-all', wipeAllData);
+app.get('/api/admin/wip-fixer', runWipFixer);
 
 // --- Stats ---
 app.get('/api/stats', getStats);

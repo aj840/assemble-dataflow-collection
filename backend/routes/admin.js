@@ -273,3 +273,64 @@ export const wipeAllData = async (req, res) => {
   await db.write();
   res.json({ success: true, deleted: { mo: moCnt, scrap: scrapCnt, rework: reworkCnt, returns: returnCnt, trash: trashCnt } });
 };
+
+// GET /api/admin/wip-fixer
+// One-time utility to repair historical MO quantities corrupted by the double-counting bug.
+export const runWipFixer = async (req, res) => {
+  let fixedMOs = 0;
+
+  for (const mo of db.data.moEntries) {
+    if (mo.wipFixed) continue;
+
+    const moReturns = (db.data.returnEntries || []).filter(r => r.moId === mo.id);
+    if (moReturns.length === 0) {
+      mo.wipFixed = true; 
+      continue; 
+    }
+
+    let missingQty = 0;
+    let missingBattery = 0, missingPCBA = 0, missingCoil = 0, missingShell = 0, missingLens = 0;
+
+    for (const r of moReturns) {
+      if (r.isFullMO) {
+        missingQty += (r.componentQty || 0);
+        missingBattery += (r.componentQty || 0);
+        missingPCBA += (r.componentQty || 0);
+        missingCoil += (r.componentQty || 0);
+        missingShell += (r.componentQty || 0);
+        missingLens += (r.componentQty || 0);
+      } else if (r.status !== 'Replenished') {
+        if (r.component === 'Battery') missingBattery += (r.componentQty || 0);
+        if (r.component === 'PCBA') missingPCBA += (r.componentQty || 0);
+        if (r.component === 'Coil') missingCoil += (r.componentQty || 0);
+        if (r.component === 'Shell') missingShell += (r.componentQty || 0);
+        if (r.component === 'Lens') missingLens += (r.componentQty || 0);
+      }
+    }
+
+    if (missingQty > 0 || missingBattery > 0 || missingPCBA > 0 || missingCoil > 0 || missingShell > 0 || missingLens > 0) {
+      if (mo.qty !== undefined) mo.qty += missingQty;
+      if (mo.batteryQty !== undefined) mo.batteryQty += missingBattery;
+      if (mo.pcbaQty !== undefined) mo.pcbaQty += missingPCBA;
+      if (mo.coilQty !== undefined) mo.coilQty += missingCoil;
+      if (mo.shellQty !== undefined) mo.shellQty += missingShell;
+      if (mo.lensQty !== undefined) mo.lensQty += missingLens;
+      fixedMOs++;
+    }
+    
+    mo.wipFixed = true;
+  }
+
+  if (fixedMOs > 0) {
+    db.data.auditLogs.unshift({
+      id: randomUUID(),
+      action: `WIP Fixer Script ran and repaired ${fixedMOs} MOs.`,
+      user: 'SystemAdmin',
+      time: new Date().toISOString()
+    });
+    await db.write();
+  }
+
+  res.json({ success: true, message: `WIP Fixer completed. Repaired ${fixedMOs} MOs. Updates have been saved.` });
+};
+
