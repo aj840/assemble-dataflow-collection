@@ -47,7 +47,7 @@ export const getStats = (req, res) => {
   const totalQtyCompleted = entries.reduce((sum, e) => sum + (e.completedQty || 0), 0);
   const totalUsers = db.data.users.length;
 
-  // WIP Formula — component-wise: WIP = (IN + RC) − (RJ + OUT)
+  // WIP Formula — component-wise: WIP = (IN + RC) − (RJ + RT + OUT)
   // IN is already net of Returns (RT) because returning an MO physically reduces the MO's quantity in the database.
   // IN  = sum of all 4 component quantities (battery+pcba+coil+shell) per MO
   // RC  = total scrap received
@@ -83,7 +83,7 @@ export const getStats = (req, res) => {
   const OUT = entries
     .filter(e => e.status === 'Completed')
     .reduce((s, e) => s + (e.batteryComp || 0) + (e.pcbaComp || 0) + (e.coilComp || 0) + (e.shellComp || 0) + (e.lensComp || 0), 0);
-  const WIP = (IN + RC) - (RJ + OUT);
+  const WIP = (IN + RC) - (RJ + RT + OUT);
 
   const batteryBreakdown = {};
   const pcbaBreakdown    = {};

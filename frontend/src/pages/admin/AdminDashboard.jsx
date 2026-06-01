@@ -304,7 +304,7 @@ export default function AdminDashboard({ onNavigate }) {
                   <h3 style={{ margin: 0, color: '#fff' }}>WIP — Work In Progress</h3>
                   <span style={{ background: '#3b82f6', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>Live Formula</span>
                 </div>
-                <div style={{ fontSize: 13, color: '#93c5fd', fontWeight: 700 }}>WIP = (IN + RC) − (RJ + OUT) &nbsp;·&nbsp; <span style={{ fontWeight: 400, fontSize: 11, color: '#64748b' }}>IN is already net of Returns (RT)</span></div>
+                <div style={{ fontSize: 13, color: '#93c5fd', fontWeight: 700 }}>WIP = (IN + RC) − (RJ + RT + OUT)</div>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', background: 'rgba(0,0,0,0.15)', padding: '10px 14px', borderRadius: 8 }}>
                 <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>📊 WIP Report — Date &amp; Time Range:</span>

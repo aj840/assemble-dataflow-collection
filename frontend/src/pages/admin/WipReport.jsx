@@ -86,7 +86,7 @@ export default function WipReport() {
         <div>
           <h2 style={{ margin: 0 }}>WIP Report</h2>
           <p className="text-muted text-sm" style={{ marginTop: 4 }}>
-            Work-In-Progress inventory across all components. Formula: <strong>WIP = (IN + RC) − (RJ + OUT)</strong>
+            Work-In-Progress inventory across all components. Formula: <strong>WIP = (IN + RC) − (RJ + RT + OUT)</strong>
           </p>
           <p className="text-muted" style={{ fontSize: 11, marginTop: 4, color: '#6b7280' }}>
             <em>Note: IN is already net of Returns — returning an MO physically reduces the collected quantity in the database.</em>
@@ -186,7 +186,7 @@ export default function WipReport() {
                     in: s.in + r.in, rc: s.rc + (r.received||0), rj: s.rj + (r.reject||0),
                     rt: s.rt + (r.return||0), out: s.out + r.out,
                   }), { in: 0, rc: 0, rj: 0, rt: 0, out: 0 });
-                  const catWip = (tot.in + tot.rc) - (tot.rj + tot.out);
+                  const catWip = (tot.in + tot.rc) - (tot.rj + tot.rt + tot.out);
                   return (
                     <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
                       Category WIP:&nbsp;
@@ -213,7 +213,7 @@ export default function WipReport() {
                   </thead>
                   <tbody>
                     {rows.map((item, i) => {
-                      const rowWip = (item.in + (item.received||0)) - ((item.reject||0) + item.out);
+                      const rowWip = (item.in + (item.received||0)) - ((item.reject||0) + (item.return||0) + item.out);
                       return (
                         <tr key={i}>
                           <td style={{ fontWeight: 600, color: '#374151' }}>{item.name}</td>
@@ -243,7 +243,7 @@ export default function WipReport() {
                         in: s.in + r.in, rc: s.rc + (r.received||0), rj: s.rj + (r.reject||0),
                         rt: s.rt + (r.return||0), out: s.out + r.out,
                       }), { in: 0, rc: 0, rj: 0, rt: 0, out: 0 });
-                      const catWip = (tot.in + tot.rc) - (tot.rj + tot.out);
+                      const catWip = (tot.in + tot.rc) - (tot.rj + tot.rt + tot.out);
                       return (
                         <tr style={{ background: '#f8fafc', fontWeight: 800, borderTop: '2px solid #e5e7eb' }}>
                           <td style={{ color: '#1e293b' }}>★ {cat.label} Total</td>
@@ -283,7 +283,7 @@ export default function WipReport() {
             { key: 'RJ',  desc: 'Rejected / Scrapped' },
             { key: 'RT',  desc: 'Returned to supplier (shown for audit, already reflected in IN)' },
             { key: 'OUT', desc: 'Assembled & finished (MO Completed)' },
-            { key: 'WIP', desc: '= (IN + RC) − (RJ + OUT)' },
+            { key: 'WIP', desc: '= (IN + RC) − (RJ + RT + OUT)' },
           ].map(l => (
             <div key={l.key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <Badge label={l.key} />

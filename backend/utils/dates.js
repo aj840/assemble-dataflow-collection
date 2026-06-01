@@ -30,9 +30,9 @@ export const isSameLocalDay = (isoString, targetDateStr) => {
 export const inLocalPeriod = (isoString, startDateStr, endDateStr) => {
   if (!isoString) return false;
   
-  // Create Date objects representing local midnight
-  const start = new Date(startDateStr + 'T00:00:00');
-  const end = new Date(endDateStr + 'T23:59:59');
+  // Create Date objects correctly if time is already included
+  const start = new Date(startDateStr.length === 10 ? startDateStr + 'T00:00:00' : startDateStr);
+  const end = new Date(endDateStr.length === 10 ? endDateStr + 'T23:59:59' : endDateStr);
   
   // The Date object constructor will parse the ISO string to an exact Unix moment
   const d = new Date(isoString);
