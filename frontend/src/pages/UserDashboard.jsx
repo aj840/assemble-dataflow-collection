@@ -382,17 +382,17 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
                 </div>
                 
                 <input 
-                  type="date" 
+                  type="datetime-local" 
                   value={filterStart} 
                   onChange={e => setFilterStart(e.target.value)} 
-                  style={{ border: 'none', background: 'transparent', fontSize: 13, color: '#4b5563', outline: 'none' }} 
+                  style={{ border: 'none', background: 'transparent', fontSize: 13, color: '#4b5563', outline: 'none', width: 180 }} 
                 />
                 <span style={{ fontSize: 12, color: '#9ca3af' }}>to</span>
                 <input 
-                  type="date" 
+                  type="datetime-local" 
                   value={filterEnd} 
                   onChange={e => setFilterEnd(e.target.value)} 
-                  style={{ border: 'none', background: 'transparent', fontSize: 13, color: '#4b5563', outline: 'none' }} 
+                  style={{ border: 'none', background: 'transparent', fontSize: 13, color: '#4b5563', outline: 'none', width: 180 }} 
                 />
                 {(filterStart || filterEnd) && (
                   <button 
@@ -646,9 +646,9 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
                   style={{ width: '100%', paddingLeft: 30 }}
                 />
               </div>
-              <input type="date" value={filterStart} onChange={e => setFilterStart(e.target.value)} style={{ width: 140 }} />
+              <input type="datetime-local" value={filterStart} onChange={e => setFilterStart(e.target.value)} style={{ width: 175, fontSize: 12 }} />
               <span className="text-muted">to</span>
-              <input type="date" value={filterEnd} onChange={e => setFilterEnd(e.target.value)} style={{ width: 140 }} />
+              <input type="datetime-local" value={filterEnd} onChange={e => setFilterEnd(e.target.value)} style={{ width: 175, fontSize: 12 }} />
               {/* Plan Date Filter */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#eff6ff', border: '1.5px solid #bfdbfe', borderRadius: 8, padding: '4px 10px' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#2563eb', whiteSpace: 'nowrap' }}><GlassIcon name="history" size={14} /> Plan:</span>
