@@ -89,7 +89,7 @@ export default function WipReport() {
             Work-In-Progress inventory across all components. Formula: <strong>WIP = (IN + RC) − (RJ + RT + OUT)</strong>
           </p>
           <p className="text-muted" style={{ fontSize: 11, marginTop: 4, color: '#6b7280' }}>
-            <em>Note: IN is already net of Returns — returning an MO physically reduces the collected quantity in the database.</em>
+            <em>IN = original planned qty (never reduced by returns). RT = returned qty tracked for audit — subtracted in WIP formula separately.</em>
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>

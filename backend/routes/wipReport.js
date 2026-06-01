@@ -122,12 +122,26 @@ export const downloadWipExcel = (req, res) => {
   const wsData = [];
 
   // Title rows
-  wsData.push(['UltraHuman Assembly — WIP Material Report (Component-Wise)']);
-  wsData.push([`Period: ${periodLabel}`]);
-  wsData.push([`Formula: WIP = (IN + RC) − (RJ + RT + OUT)`]);
-  wsData.push([]); // spacer
+  wsData.push(['UltraHuman Assembly — WIP Material Report (Component-Wise)']);     // row 0
+  wsData.push([`Period: ${periodLabel}`]);                                           // row 1
+  wsData.push([                                                                      // row 2
+    `Formula: WIP = (IN + RC) − (RJ + RT + OUT)` +
+    `   |   IN = original plan qty (never reduced by returns)` +
+    `   |   RT = returned qty (audit trail only, already subtracted in WIP)`,
+  ]);
+  wsData.push([]);  // row 3 — spacer
 
-  // Header row
+  // Row 4 — group header (only useful when period is active)
+  wsData.push([
+    '',
+    hasPeriod ? '◄ ALL-TIME DATA ►' : '',
+    '', '', '', '', '',
+    '',
+    hasPeriod ? `◄ SELECTED PERIOD: ${fmtDT(startDate)}  →  ${fmtDT(endDate)} ►` : '',
+    '', '', '', '', '',
+  ]);
+
+  // Row 5 — column headers
   wsData.push([
     'MATERIAL / PART DESCRIPTION',
     'IN (Planned)',
@@ -135,14 +149,14 @@ export const downloadWipExcel = (req, res) => {
     'RJ (Rejected)',
     'RT (Returned)',
     'OUT (Completed)',
-    'WIP',
+    'WIP — All Time',
     '',
-    hasPeriod ? 'Period IN'  : '',
-    hasPeriod ? 'Period RC'  : '',
-    hasPeriod ? 'Period RJ'  : '',
-    hasPeriod ? 'Period RT'  : '',
-    hasPeriod ? 'Period OUT' : '',
-    hasPeriod ? 'Period WIP' : '',
+    hasPeriod ? 'IN (Period)'  : '',
+    hasPeriod ? 'RC (Period)'  : '',
+    hasPeriod ? 'RJ (Period)'  : '',
+    hasPeriod ? 'RT (Period)'  : '',
+    hasPeriod ? 'OUT (Period)' : '',
+    hasPeriod ? 'WIP — Period' : '',
   ]);
 
   // Grand totals accumulators
@@ -267,9 +281,17 @@ export const downloadWipExcel = (req, res) => {
         cell.s.font = { name: 'Calibri', sz: 11, italic: true, color: { rgb: '059669' } };
         cell.s.border = {};
       } else if (R === 4) {
+        // Group header row (ALL-TIME vs PERIOD)
+        if (cell.v && String(cell.v).startsWith('◄')) {
+          cell.s.font = { name: 'Calibri', sz: 11, bold: true, color: { rgb: 'FFFFFF' } };
+          cell.s.fill = { fgColor: { rgb: C < 8 ? '1D4ED8' : '059669' } }; // blue for all-time, green for period
+          cell.s.alignment = { vertical: 'center', horizontal: 'center' };
+          cell.s.border = {};
+        }
+      } else if (R === 5) {
         // Column header row
         cell.s.font = { name: 'Calibri', sz: 11, bold: true, color: { rgb: 'FFFFFF' } };
-        cell.s.fill = { fgColor: { rgb: '1D4ED8' } };
+        cell.s.fill = { fgColor: { rgb: C < 8 ? '1D4ED8' : '065F46' } }; // blue for all-time, dark-green for period
         cell.s.alignment = { vertical: 'center', horizontal: 'center' };
       } else if (cellVal.startsWith('— ')) {
         // Section separator
@@ -281,7 +303,7 @@ export const downloadWipExcel = (req, res) => {
         cell.s.font = { name: 'Calibri', sz: 12, bold: true, color: { rgb: 'FFFFFF' } };
         cell.s.fill = { fgColor: { rgb: '064E3B' } };
         cell.s.alignment = { vertical: 'center', horizontal: C === 0 ? 'left' : 'center' };
-      } else if (C > 0 && R > 4) {
+      } else if (C > 0 && R > 5) {
         // Data numbers
         cell.s.alignment = { vertical: 'center', horizontal: 'center' };
 

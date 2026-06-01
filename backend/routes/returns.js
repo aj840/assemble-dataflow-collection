@@ -27,6 +27,7 @@ export const getReturnEntries = (req, res) => {
         pcba:      mo.pcba,     pcbaQty:     mo.pcbaQty     !== undefined ? mo.pcbaQty     : mo.qty,
         coil:      mo.coil,     coilQty:     mo.coilQty     !== undefined ? mo.coilQty     : mo.qty,
         shell:     mo.shell,    shellQty:    mo.shellQty     !== undefined ? mo.shellQty    : mo.qty,
+        lens:      mo.lens,     lensQty:     mo.lensQty     !== undefined ? mo.lensQty     : 0,
       } : null
     };
   });
@@ -60,34 +61,16 @@ export const createReturnEntry = async (req, res) => {
 
   db.data.returnEntries.push(entry);
 
-  // Apply physical reduction to the MO collected quantities
-  const mo = db.data.moEntries.find(e => e.id === moId);
-  if (mo) {
-    if (isFullMO) {
-      mo.qty = Math.max(0, (mo.qty || 0) - entry.componentQty);
-      if (mo.batteryQty !== undefined) mo.batteryQty = Math.max(0, mo.batteryQty - entry.componentQty);
-      if (mo.pcbaQty !== undefined)    mo.pcbaQty    = Math.max(0, mo.pcbaQty - entry.componentQty);
-      if (mo.coilQty !== undefined)    mo.coilQty    = Math.max(0, mo.coilQty - entry.componentQty);
-      if (mo.shellQty !== undefined)   mo.shellQty   = Math.max(0, mo.shellQty - entry.componentQty);
-      if (mo.lensQty !== undefined)    mo.lensQty    = Math.max(0, mo.lensQty - entry.componentQty);
-      
-      if (mo.qty === 0) {
-        mo.status = 'Returned';
-        mo.returnedAt = now;
-      }
-    } else if (component) {
-      // Partial component return — reduce collected quantity of that specific component
-      const maxMap = { Battery: 'batteryQty', PCBA: 'pcbaQty', Coil: 'coilQty', Shell: 'shellQty', Lens: 'lensQty' };
-      const maxKey = maxMap[component];
-      
-      if (maxKey) {
-        if (mo[maxKey] === undefined) mo[maxKey] = mo.qty || 0; // Initialize if it was relying on fallback
-        mo[maxKey] = Math.max(0, mo[maxKey] - entry.componentQty);
-      }
-      
-      // Store which components were returned for historical visibility
-      if (!mo.pendingReturns) mo.pendingReturns = [];
-      mo.pendingReturns.push({ component, qty: entry.componentQty, returnedAt: now });
+  // Mark MO status as Returned for full MO returns.
+  // NOTE: MO qty fields are intentionally NOT reduced here.
+  // IN = original planned qty (never mutated by returns).
+  // RT is tracked in returnEntries and subtracted in the WIP formula separately.
+  // WIP = (IN + RC) − (RJ + RT + OUT) — no double-counting.
+  if (isFullMO) {
+    const mo = db.data.moEntries.find(e => e.id === moId);
+    if (mo) {
+      mo.status = 'Returned';
+      mo.returnedAt = now;
     }
   }
 
@@ -122,22 +105,8 @@ export const replenishReturnEntry = async (req, res) => {
   entry.status = 'Replenished';
   entry.replenishedAt = new Date().toISOString();
 
-  // If this was a component return, automatically refill the MO
-  if (!entry.isFullMO && entry.component) {
-    const mo = db.data.moEntries.find(m => m.id === entry.moId);
-    if (mo) {
-      const compMap = { Battery: 'batteryComp', PCBA: 'pcbaComp', Coil: 'coilComp', Shell: 'shellComp', Lens: 'lensComp' };
-      const key = compMap[entry.component];
-      const maxMap = { Battery: 'batteryQty', PCBA: 'pcbaQty', Coil: 'coilQty', Shell: 'shellQty', Lens: 'lensQty' };
-      const maxKey = maxMap[entry.component];
-      
-      // Restore the quantity to the required amount
-      if (maxKey) {
-        if (mo[maxKey] === undefined) mo[maxKey] = mo.qty || 0;
-        mo[maxKey] += (entry.componentQty || 0); // Give back the returned quantity
-      }
-    }
-  }
+  // No qty restoration needed: MO qty fields are never reduced on return,
+  // so replenish only needs to update the return entry status (done above).
 
   db.data.auditLogs.unshift({
     id: randomUUID(),
