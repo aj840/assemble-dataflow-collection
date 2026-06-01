@@ -322,19 +322,19 @@ export default function ScrapPage({ onBack }) {
                 />
                 <span style={{ fontSize: 13, color: '#9ca3af', margin: '0 4px' }}>OR</span>
                 <input 
-                  type="date" 
+                  type="datetime-local" 
                   value={filterStart} 
                   onChange={e => { setFilterStart(e.target.value); setFilterDate(''); }} 
-                  style={{ border: 'none', background: '#f9fafb', padding: '4px 8px', borderRadius: 6, fontSize: 13, color: '#4b5563', outline: 'none', cursor: 'pointer' }} 
-                  title="Start Date"
+                  style={{ border: 'none', background: '#f9fafb', padding: '4px 8px', borderRadius: 6, fontSize: 13, color: '#4b5563', outline: 'none', cursor: 'pointer', width: 175 }} 
+                  title="Start Date & Time"
                 />
                 <span style={{ fontSize: 12, color: '#9ca3af' }}>to</span>
                 <input 
-                  type="date" 
+                  type="datetime-local" 
                   value={filterEnd} 
                   onChange={e => { setFilterEnd(e.target.value); setFilterDate(''); }} 
-                  style={{ border: 'none', background: '#f9fafb', padding: '4px 8px', borderRadius: 6, fontSize: 13, color: '#4b5563', outline: 'none', cursor: 'pointer' }} 
-                  title="End Date"
+                  style={{ border: 'none', background: '#f9fafb', padding: '4px 8px', borderRadius: 6, fontSize: 13, color: '#4b5563', outline: 'none', cursor: 'pointer', width: 175 }} 
+                  title="End Date & Time"
                 />
                 {(filterDate || filterStart || filterEnd) && (
                   <button 

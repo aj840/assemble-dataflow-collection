@@ -1,4 +1,5 @@
 import db, { randomUUID } from '../db.js';
+import { inLocalPeriod } from '../utils/dates.js';
 
 // GET /api/returns
 export const getReturnEntries = (req, res) => {
@@ -10,10 +11,7 @@ export const getReturnEntries = (req, res) => {
     entries = entries.filter(e => (e.moNumber || '').toLowerCase().includes(q));
   }
   if (startDate && endDate) {
-    entries = entries.filter(e => {
-      const d = (e.returnedAt || '').split('T')[0];
-      return d >= startDate && d <= endDate;
-    });
+    entries = entries.filter(e => inLocalPeriod(e.returnedAt, startDate, endDate));
   }
 
   // Attach MO details including per-component quantities

@@ -1,4 +1,5 @@
 import db, { randomUUID } from '../db.js';
+import { inLocalPeriod } from '../utils/dates.js';
 
 // GET /api/admin/config
 export const getConfig = (req, res) => {
@@ -130,10 +131,7 @@ export const getAuditLogs = (req, res) => {
   let logs = db.data.auditLogs;
   const { startDate, endDate } = req.query;
   if (startDate && endDate) {
-    logs = logs.filter(l => {
-      const d = l.time.split('T')[0];
-      return d >= startDate && d <= endDate;
-    });
+    logs = logs.filter(l => inLocalPeriod(l.time, startDate, endDate));
   }
   res.json(logs.slice(0, 500));
 };
@@ -144,10 +142,7 @@ export const deleteAuditLogs = async (req, res) => {
   if (!startDate || !endDate) return res.status(400).json({ message: 'Start and end dates are required' });
   
   const initialLength = db.data.auditLogs.length;
-  db.data.auditLogs = db.data.auditLogs.filter(l => {
-    const d = l.time.split('T')[0];
-    return !(d >= startDate && d <= endDate);
-  });
+  db.data.auditLogs = db.data.auditLogs.filter(l => !inLocalPeriod(l.time, startDate, endDate));
   
   const deletedCount = initialLength - db.data.auditLogs.length;
   await db.write();

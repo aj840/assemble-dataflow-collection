@@ -46,17 +46,20 @@ export default function AdminDBManager() {
     if (startDate || endDate) {
       const dStr = item.createdAt || item.returnedAt || item.submittedAt;
       if (!dStr) return false;
-      
-      const itemDateObj = new Date(dStr);
-      if (isNaN(itemDateObj.getTime())) return false;
-      
-      const yyyy = itemDateObj.getFullYear();
-      const mm = String(itemDateObj.getMonth() + 1).padStart(2, '0');
-      const dd = String(itemDateObj.getDate()).padStart(2, '0');
-      const itemDateStr = `${yyyy}-${mm}-${dd}`;
-      
-      if (startDate && itemDateStr < startDate) return false;
-      if (endDate && itemDateStr > endDate) return false;
+
+      const itemMs = new Date(dStr).getTime();
+      if (isNaN(itemMs)) return false;
+
+      if (startDate) {
+        // datetime-local "YYYY-MM-DDTHH:mm" → parse as local time with start-of-minute padding
+        const startMs = new Date(startDate.length === 16 ? startDate + ':00.000' : startDate + 'T00:00:00').getTime();
+        if (itemMs < startMs) return false;
+      }
+      if (endDate) {
+        // Expands the end boundary to include the entire minute
+        const endMs = new Date(endDate.length === 16 ? endDate + ':59.999' : endDate + 'T23:59:59.999').getTime();
+        if (itemMs > endMs) return false;
+      }
     }
     return true;
   });
@@ -155,17 +158,17 @@ export default function AdminDBManager() {
           {/* Date range */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f9fafb', border: '1px solid #e5e7eb', padding: '4px 8px', borderRadius: 6 }}>
             <input
-              type="date"
+              type="datetime-local"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              style={{ border: 'none', background: 'transparent', fontSize: 13, color: '#4b5563', outline: 'none' }}
+              style={{ border: 'none', background: 'transparent', fontSize: 13, color: '#4b5563', outline: 'none', width: 180 }}
             />
             <span style={{ fontSize: 12, color: '#9ca3af' }}>to</span>
             <input
-              type="date"
+              type="datetime-local"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              style={{ border: 'none', background: 'transparent', fontSize: 13, color: '#4b5563', outline: 'none' }}
+              style={{ border: 'none', background: 'transparent', fontSize: 13, color: '#4b5563', outline: 'none', width: 180 }}
             />
             {(startDate || endDate) && (
               <button

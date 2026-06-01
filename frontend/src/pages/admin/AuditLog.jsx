@@ -66,9 +66,9 @@ export default function AuditLog() {
           <p className="text-muted text-sm">Complete history of all system actions and user activity.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          <input type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ width: 185, fontSize: 13 }} />
           <span className="text-muted">to</span>
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          <input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ width: 185, fontSize: 13 }} />
           <button className="btn btn-danger btn-sm" onClick={handleShowDelete}>Show & Delete</button>
           
           <div className="search-input-wrap" style={{ marginLeft: 16 }}>

@@ -1,5 +1,6 @@
 import db from '../db.js';
 import XLSX from 'xlsx-js-style';
+import { inLocalPeriod } from '../utils/dates.js';
 
 // GET /api/stats/wip-excel?startDate=&endDate=
 export const downloadWipExcel = (req, res) => {
@@ -12,31 +13,17 @@ export const downloadWipExcel = (req, res) => {
   const comps      = db.data.components   || {};
 
   // ─── DateTime filter helpers ───────────────────────────────────────────────
-  // startDate / endDate may be either "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM"
-  // We normalise: a plain date "YYYY-MM-DD" becomes start-of-day / end-of-day
-  const parseStart = (s) => {
-    if (!s) return null;
-    return new Date(s.length === 10 ? s + 'T00:00:00' : s);
-  };
-  const parseEnd = (s) => {
-    if (!s) return null;
-    return new Date(s.length === 10 ? s + 'T23:59:59' : s);
-  };
-
-  const startDT = parseStart(startDate);
-  const endDT   = parseEnd(endDate);
-
+  // Use the shared inLocalPeriod utility which correctly handles both
+  // "YYYY-MM-DD" (treated as local midnight/end-of-day) and full ISO timestamps.
   const inPeriod = (dateStr) => {
-    if (!startDT || !endDT) return true;
-    const d = new Date(dateStr || '');
-    if (isNaN(d)) return false;
-    return d >= startDT && d <= endDT;
+    if (!startDate || !endDate) return true;
+    return inLocalPeriod(dateStr, startDate, endDate);
   };
 
-  const periodMOs     = startDT ? allMOs.filter(e     => inPeriod(e.createdAt))   : allMOs;
-  const periodScrap   = startDT ? allScrap.filter(e   => inPeriod(e.submittedAt)) : allScrap;
-  const periodReturns = startDT ? allReturns.filter(e => inPeriod(e.returnedAt))  : allReturns;
-  const periodReworks = startDT ? allReworks.filter(e => inPeriod(e.submittedAt)) : allReworks;
+  const periodMOs     = startDate ? allMOs.filter(e     => inPeriod(e.createdAt))   : allMOs;
+  const periodScrap   = startDate ? allScrap.filter(e   => inPeriod(e.submittedAt)) : allScrap;
+  const periodReturns = startDate ? allReturns.filter(e => inPeriod(e.returnedAt))  : allReturns;
+  const periodReworks = startDate ? allReworks.filter(e => inPeriod(e.submittedAt)) : allReworks;
 
   // ─── Component-wise stat calculator ───────────────────────────────────────
   // category: 'batteries' | 'pcbas' | 'coils' | 'shells'

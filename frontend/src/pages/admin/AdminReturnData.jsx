@@ -74,9 +74,9 @@ export default function AdminReturnData() {
             style={{ width: 240, fontSize: 13 }}
           />
           <span className="text-muted text-sm">Date range:</span>
-          <input type="date" value={filterStart} onChange={e => setFilterStart(e.target.value)} style={{ width: 140, fontSize: 13 }} />
+          <input type="datetime-local" value={filterStart} onChange={e => setFilterStart(e.target.value)} style={{ width: 190, fontSize: 13 }} />
           <span className="text-muted text-sm">→</span>
-          <input type="date" value={filterEnd}   onChange={e => setFilterEnd(e.target.value)}   style={{ width: 140, fontSize: 13 }} />
+          <input type="datetime-local" value={filterEnd}   onChange={e => setFilterEnd(e.target.value)}   style={{ width: 190, fontSize: 13 }} />
           {(moSearch || filterStart || filterEnd) && (
             <button className="btn btn-secondary btn-sm" onClick={() => { setMoSearch(''); setFilterStart(''); setFilterEnd(''); }}>
               Clear

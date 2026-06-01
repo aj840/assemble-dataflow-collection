@@ -1,5 +1,6 @@
 import db, { randomUUID } from '../db.js';
 import * as XLSX from 'xlsx';
+import { inLocalPeriod } from '../utils/dates.js';
 
 // GET /api/rnd/products
 export const getRndProducts = (req, res) => {
@@ -94,10 +95,7 @@ export const getRndEntries = (req, res) => {
   }
 
   if (startDate && endDate) {
-    entries = entries.filter(e => {
-      const d = (e.submittedAt || '').split('T')[0];
-      return d >= startDate && d <= endDate;
-    });
+    entries = entries.filter(e => inLocalPeriod(e.submittedAt, startDate, endDate));
   }
 
   entries.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
@@ -212,10 +210,7 @@ export const exportRndExcel = (req, res) => {
   }
 
   if (startDate && endDate) {
-    entries = entries.filter(e => {
-      const d = (e.submittedAt || '').split('T')[0];
-      return d >= startDate && d <= endDate;
-    });
+    entries = entries.filter(e => inLocalPeriod(e.submittedAt, startDate, endDate));
   }
 
   entries.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));

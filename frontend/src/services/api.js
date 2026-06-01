@@ -36,12 +36,9 @@ const req = async (url, opts = {}) => {
 const sanitizeParams = (p) => {
   if (!p) return {};
   const params = { ...p };
-  ['startDate', 'endDate'].forEach(key => {
-    // Convert YYYY-MM-DDTHH:mm (length 16) from datetime-local to absolute UTC ISO string
-    if (params[key] && params[key].length === 16) {
-      params[key] = new Date(params[key]).toISOString();
-    }
-  });
+  // Pass startDate and endDate directly.
+  // The backend's parseDateBoundary handles length-10 (date only) by auto-padding local midnights,
+  // and parses length-16 (datetime-local) locally matching ISO.
   return params;
 };
 

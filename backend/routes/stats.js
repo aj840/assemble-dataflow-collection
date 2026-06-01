@@ -1,5 +1,5 @@
 import db from '../db.js';
-import { getLocalDateStr, isSameLocalDay, inLocalPeriod } from '../utils/dates.js';
+import { getLocalDateStr, isSameLocalDay, inLocalPeriod, parseDateBoundary } from '../utils/dates.js';
 
 // GET /api/stats?startDate=&endDate=&date=
 export const getStats = (req, res) => {
@@ -150,23 +150,11 @@ export const getReport = (req, res) => {
   const { startDate, endDate } = req.query;
   if (!startDate || !endDate) return res.status(400).json({ message: 'Start and end dates are required' });
 
-  // Helper for proper Date comparisons
-  const parseStart = (s) => s ? new Date(s.length === 10 ? s + 'T00:00:00' : s) : null;
-  const parseEnd = (s) => s ? new Date(s.length === 10 ? s + 'T23:59:59' : s) : null;
-  const startDT = parseStart(startDate);
-  const endDT = parseEnd(endDate);
-
-  const inPeriod = (dateStr) => {
-    if (!startDT || !endDT) return true;
-    const d = new Date(dateStr || '');
-    return d >= startDT && d <= endDT;
-  };
-
-  // Filter entries exactly by the datetime range
-  const moEntries = (db.data.moEntries || []).filter(e => inPeriod(e.createdAt));
-  const scrapEntries = (db.data.scrapEntries || []).filter(e => inPeriod(e.submittedAt));
-  const returnEntries = (db.data.returnEntries || []).filter(e => inPeriod(e.returnedAt));
-  const reworkEntries = (db.data.reworkEntries || []).filter(e => inPeriod(e.submittedAt));
+  // Filter entries exactly by the datetime range using the shared utility
+  const moEntries = (db.data.moEntries || []).filter(e => inLocalPeriod(e.createdAt, startDate, endDate));
+  const scrapEntries = (db.data.scrapEntries || []).filter(e => inLocalPeriod(e.submittedAt, startDate, endDate));
+  const returnEntries = (db.data.returnEntries || []).filter(e => inLocalPeriod(e.returnedAt, startDate, endDate));
+  const reworkEntries = (db.data.reworkEntries || []).filter(e => inLocalPeriod(e.submittedAt, startDate, endDate));
 
   const totalMOs = moEntries.length;
   const pendingMOs = moEntries.filter(e => e.status === 'Pending').length;
