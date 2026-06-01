@@ -62,9 +62,7 @@ export const downloadWipExcel = (req, res) => {
       if (e[nameField] === name) {
         // Use per-component qty if stored, otherwise fall back to plan qty
         IN += e[qtyField] !== undefined ? (e[qtyField] || 0) : (e.qty || 0);
-        if (e.status === 'Completed') {
-          OUT += e[compField] || 0;
-        }
+        OUT += e[compField] || 0;
       }
     });
 

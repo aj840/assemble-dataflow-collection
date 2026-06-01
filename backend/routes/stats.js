@@ -81,7 +81,6 @@ export const getStats = (req, res) => {
     return s + (e.componentQty || 0);
   }, 0);
   const OUT = entries
-    .filter(e => e.status === 'Completed')
     .reduce((s, e) => s + (e.batteryComp || 0) + (e.pcbaComp || 0) + (e.coilComp || 0) + (e.shellComp || 0) + (e.lensComp || 0), 0);
   const WIP = (IN + RC) - (RJ + RT + OUT);
 
@@ -210,14 +209,12 @@ export const getReport = (req, res) => {
       findAndAdd('lenses',  e.lens,    'in', e.lensQty    !== undefined ? e.lensQty    : (e.qty || 0));
     }
 
-    if (e.status === 'Completed') {
-      findAndAdd('batteries', e.battery, 'out', e.batteryComp || 0);
-      findAndAdd('pcbas',     e.pcba,    'out', e.pcbaComp    || 0);
-      findAndAdd('coils',     e.coil,    'out', e.coilComp    || 0);
-      findAndAdd('shells',    e.shell,   'out', e.shellComp   || 0);
-      if (e.lens && e.lens !== 'N/A') {
-        findAndAdd('lenses',  e.lens,    'out', e.lensComp    || 0);
-      }
+    findAndAdd('batteries', e.battery, 'out', e.batteryComp || 0);
+    findAndAdd('pcbas',     e.pcba,    'out', e.pcbaComp    || 0);
+    findAndAdd('coils',     e.coil,    'out', e.coilComp    || 0);
+    findAndAdd('shells',    e.shell,   'out', e.shellComp   || 0);
+    if (e.lens && e.lens !== 'N/A') {
+      findAndAdd('lenses',  e.lens,    'out', e.lensComp    || 0);
     }
   });
 
