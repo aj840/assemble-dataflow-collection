@@ -139,6 +139,7 @@ export default function DatabaseManager() {
         lensComp:    parseInt(editingMO.lensComp    || 0),
         planDate: editingMO.planDate || '',
         refer: safeRefer,
+        pcba: editingMO.pcba,
         submittedBy: 'Admin'
       });
       setEditModal(false);
@@ -437,6 +438,19 @@ export default function DatabaseManager() {
                   style={{ maxWidth: 220 }}
                 />
                 <p className="text-xs text-muted" style={{ marginTop: 4 }}>The manufacturing plan date for this order.</p>
+              </div>
+
+              {/* PCBA Type Override */}
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label style={{ color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><GlassIcon name="settings" size={14} color="#16a34a" /> PCBA Type Override</label>
+                <input
+                  type="text"
+                  value={editingMO.pcba || ''}
+                  onChange={e => setEditingMO({...editingMO, pcba: e.target.value})}
+                  style={{ maxWidth: 320 }}
+                  placeholder="e.g. Ring PCBA V1.60"
+                />
+                <p className="text-xs text-muted" style={{ marginTop: 4 }}>Change the PCBA name assigned to this order (overrides global defaults).</p>
               </div>
 
               <div style={{ padding: 16, background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, marginBottom: 16 }}>

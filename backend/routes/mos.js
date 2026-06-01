@@ -197,7 +197,8 @@ export const updateMO = async (req, res) => {
     batteryComp, pcbaComp, coilComp, shellComp, lensComp,
     batteryQty, pcbaQty, coilQty, shellQty, lensQty,
     planDate,
-    refer, od
+    refer, od,
+    pcba
   } = req.body;
   const entry = db.data.moEntries.find(e => e.id === id);
   if (!entry) return res.status(404).json({ message: 'MO not found' });
@@ -236,6 +237,27 @@ export const updateMO = async (req, res) => {
   }
 
   if (od !== undefined) entry.od = od;
+
+  if (pcba !== undefined && pcba !== entry.pcba) {
+    entry.pcba = pcba;
+    
+    // Auto-register to components list if new
+    const ensureComponent = (category, value) => {
+      if (!value || value === 'Unknown' || value === 'N/A') return;
+      if (!db.data.components) db.data.components = { batteries: [], pcbas: [], coils: [], shells: [], lenses: [] };
+      if (!db.data.components[category]) db.data.components[category] = [];
+      const exists = db.data.components[category].some(c => (typeof c === 'string' ? c === value : c.name === value));
+      if (!exists) db.data.components[category].push({ id: randomUUID().split('-')[0], name: value, status: 'Active', updatedAt: new Date().toISOString().split('T')[0] });
+    };
+    ensureComponent('pcbas', pcba);
+
+    db.data.auditLogs.unshift({
+      id: randomUUID(),
+      action: `PCBA changed: MO ${entry.moNumber} → ${pcba}`,
+      user: req.body.submittedBy || 'Admin',
+      time: new Date().toISOString()
+    });
+  }
 
   if (status) {
     entry.status = status;
