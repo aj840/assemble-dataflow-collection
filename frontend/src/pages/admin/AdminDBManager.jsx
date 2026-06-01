@@ -45,11 +45,18 @@ export default function AdminDBManager() {
     if (searchTerm && !(item.moNumber || '').toLowerCase().includes(searchTerm.toLowerCase())) return false;
     if (startDate || endDate) {
       const dStr = item.createdAt || item.returnedAt || item.submittedAt;
-      if (dStr) {
-        const itemDate = dStr.split('T')[0];
-        if (startDate && itemDate < startDate) return false;
-        if (endDate && itemDate > endDate) return false;
-      }
+      if (!dStr) return false;
+      
+      const itemDateObj = new Date(dStr);
+      if (isNaN(itemDateObj.getTime())) return false;
+      
+      const yyyy = itemDateObj.getFullYear();
+      const mm = String(itemDateObj.getMonth() + 1).padStart(2, '0');
+      const dd = String(itemDateObj.getDate()).padStart(2, '0');
+      const itemDateStr = `${yyyy}-${mm}-${dd}`;
+      
+      if (startDate && itemDateStr < startDate) return false;
+      if (endDate && itemDateStr > endDate) return false;
     }
     return true;
   });
