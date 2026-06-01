@@ -126,9 +126,9 @@ export const replenishReturnEntry = async (req, res) => {
   if (!entry.isFullMO && entry.component) {
     const mo = db.data.moEntries.find(m => m.id === entry.moId);
     if (mo) {
-      const compMap = { Battery: 'batteryComp', PCBA: 'pcbaComp', Coil: 'coilComp', Shell: 'shellComp' };
+      const compMap = { Battery: 'batteryComp', PCBA: 'pcbaComp', Coil: 'coilComp', Shell: 'shellComp', Lens: 'lensComp' };
       const key = compMap[entry.component];
-      const maxMap = { Battery: 'batteryQty', PCBA: 'pcbaQty', Coil: 'coilQty', Shell: 'shellQty' };
+      const maxMap = { Battery: 'batteryQty', PCBA: 'pcbaQty', Coil: 'coilQty', Shell: 'shellQty', Lens: 'lensQty' };
       const maxKey = maxMap[entry.component];
       
       // Restore the quantity to the required amount

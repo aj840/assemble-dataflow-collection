@@ -166,9 +166,10 @@ export const handleDbAction = async (req, res) => {
 
   const getSourceArray = (t) => {
     switch (t) {
-      case 'mo': return db.data.moEntries;
-      case 'scrap': return db.data.scrapEntries;
+      case 'mo':     return db.data.moEntries;
+      case 'scrap':  return db.data.scrapEntries;
       case 'return': return db.data.returnEntries;
+      case 'rework': return db.data.reworkEntries || [];
       default: return null;
     }
   };
@@ -187,9 +188,10 @@ export const handleDbAction = async (req, res) => {
 
   // Remove from original array (applies to both 'trash' and 'delete')
   const newArray = sourceArray.filter(item => !ids.includes(item.id));
-  if (type === 'mo') db.data.moEntries = newArray;
-  else if (type === 'scrap') db.data.scrapEntries = newArray;
+  if (type === 'mo')     db.data.moEntries     = newArray;
+  else if (type === 'scrap')  db.data.scrapEntries  = newArray;
   else if (type === 'return') db.data.returnEntries = newArray;
+  else if (type === 'rework') db.data.reworkEntries = newArray;
 
   db.data.auditLogs.unshift({
     id: randomUUID(),
@@ -220,9 +222,10 @@ export const handleTrashAction = async (req, res) => {
       const type = item.originalSource;
       const { originalSource, trashedAt, ...originalItem } = item;
       
-      if (type === 'mo') db.data.moEntries.push(originalItem);
-      else if (type === 'scrap') db.data.scrapEntries.push(originalItem);
-      else if (type === 'return') db.data.returnEntries.push(originalItem);
+      if (type === 'mo')           db.data.moEntries.push(originalItem);
+      else if (type === 'scrap')   db.data.scrapEntries.push(originalItem);
+      else if (type === 'return')  db.data.returnEntries.push(originalItem);
+      else if (type === 'rework')  { if (!db.data.reworkEntries) db.data.reworkEntries = []; db.data.reworkEntries.push(originalItem); }
     });
   }
 
@@ -250,21 +253,23 @@ export const wipeAllData = async (req, res) => {
 
   const moCnt     = (db.data.moEntries     || []).length;
   const scrapCnt  = (db.data.scrapEntries  || []).length;
+  const reworkCnt = (db.data.reworkEntries || []).length;
   const returnCnt = (db.data.returnEntries || []).length;
   const trashCnt  = (db.data.trashEntries  || []).length;
 
   db.data.moEntries     = [];
   db.data.scrapEntries  = [];
+  db.data.reworkEntries = [];
   db.data.returnEntries = [];
   db.data.trashEntries  = [];
 
   db.data.auditLogs.unshift({
     id: randomUUID(),
-    action: `⚠️ FULL DATABASE WIPE: Deleted ${moCnt} MOs, ${scrapCnt} Scrap, ${returnCnt} Returns, ${trashCnt} Trash`,
+    action: `⚠️ FULL DATABASE WIPE: Deleted ${moCnt} MOs, ${scrapCnt} Scrap, ${reworkCnt} Rework, ${returnCnt} Returns, ${trashCnt} Trash`,
     user: req.body.submittedBy || 'Admin',
     time: new Date().toISOString(),
   });
 
   await db.write();
-  res.json({ success: true, deleted: { mo: moCnt, scrap: scrapCnt, returns: returnCnt, trash: trashCnt } });
+  res.json({ success: true, deleted: { mo: moCnt, scrap: scrapCnt, rework: reworkCnt, returns: returnCnt, trash: trashCnt } });
 };

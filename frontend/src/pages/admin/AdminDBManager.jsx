@@ -24,6 +24,8 @@ export default function AdminDBManager() {
         res = await api.getScrap();
       } else if (activeTab === 'return') {
         res = await api.getReturns();
+      } else if (activeTab === 'rework') {
+        res = await api.getRework();
       }
       setData(res);
       setSelectedIds([]);
@@ -102,7 +104,7 @@ export default function AdminDBManager() {
     try {
       const result = await api.wipeAll({ confirm: 'WIPE_ALL_CONFIRMED', submittedBy: 'Admin' });
       alert(
-        `Database wiped successfully!\n\nDeleted:\n• ${result.deleted.mo} MOs\n• ${result.deleted.scrap} Scrap entries\n• ${result.deleted.returns} Return entries\n• ${result.deleted.trash} Trash entries`
+        `Database wiped successfully!\n\nDeleted:\n• ${result.deleted.mo} MOs\n• ${result.deleted.scrap} Scrap entries\n• ${result.deleted.rework} Rework entries\n• ${result.deleted.returns} Return entries\n• ${result.deleted.trash} Trash entries`
       );
       await loadData();
     } catch (e) {
@@ -206,7 +208,8 @@ export default function AdminDBManager() {
         {[
           { id: 'mo',     label: 'Plan Data (MOs)', icon: 'plan'    },
           { id: 'scrap',  label: 'Scrap Data',      icon: 'scrap'   },
-          { id: 'return', label: 'Return Data',     icon: 'history' },
+          { id: 'rework', label: 'Rework Data',      icon: 'history' },
+          { id: 'return', label: 'Return Data',      icon: 'history' },
         ].map(t => (
           <button
             key={t.id}

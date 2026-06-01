@@ -139,7 +139,7 @@ export const exportScrapExcel = (req, res) => {
     'SKU': e.sku,
     'Component Type': e.component,
     'Component Name': e.componentName,
-    'Receive (RT)': e.receive,
+    'Receive (RC)': e.receive,
     'Reject (RJ)': e.reject,
     'Received At': e.receivedAt ? new Date(e.receivedAt).toLocaleString() : '—',
     'Rejected At': e.rejectedAt ? new Date(e.rejectedAt).toLocaleString() : '—',

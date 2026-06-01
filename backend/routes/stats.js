@@ -242,9 +242,9 @@ export const getReport = (req, res) => {
 
   // 3. Return Entries (Return) — Full MO returns use MO's per-component qty
   returnEntries.forEach(e => {
-    const typeMap = { 'Battery': 'batteries', 'PCBA': 'pcbas', 'Coil': 'coils', 'Shell': 'shells' };
-    const fieldMap = { 'Battery': 'battery', 'PCBA': 'pcba', 'Coil': 'coil', 'Shell': 'shell' };
-    const qtyMap  = { 'Battery': 'batteryQty', 'PCBA': 'pcbaQty', 'Coil': 'coilQty', 'Shell': 'shellQty' };
+    const typeMap  = { 'Battery': 'batteries', 'PCBA': 'pcbas', 'Coil': 'coils', 'Shell': 'shells', 'Lens': 'lenses' };
+    const fieldMap = { 'Battery': 'battery',   'PCBA': 'pcba',  'Coil': 'coil',  'Shell': 'shell',  'Lens': 'lens'    };
+    const qtyMap   = { 'Battery': 'batteryQty', 'PCBA': 'pcbaQty', 'Coil': 'coilQty', 'Shell': 'shellQty', 'Lens': 'lensQty' };
     
     // Find original MO to determine component names
     const mo = (db.data.moEntries || []).find(m => m.id === e.moId);

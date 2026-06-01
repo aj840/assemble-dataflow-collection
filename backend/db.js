@@ -32,6 +32,7 @@ const defaultData = {
   },
   moEntries: [],
   scrapEntries: [],
+  reworkEntries: [],
   returnEntries: [],
   trashEntries: [],
   auditLogs: [],
