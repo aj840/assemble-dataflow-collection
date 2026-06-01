@@ -301,6 +301,32 @@ export const updateMO = async (req, res) => {
   if (shellComp   !== undefined) { checkReplenish('Shell',   entry.shellComp,   parseInt(shellComp),   entry.shellQty);   entry.shellComp   = parseInt(shellComp);   }
   if (lensComp    !== undefined) { checkReplenish('Lens',    entry.lensComp  || 0, parseInt(lensComp), entry.lensQty  || 0); entry.lensComp  = parseInt(lensComp);   }
 
+  // --- Cascade Component Name Changes to Dataflow (WIP Fix) ---
+  const applyCascade = () => {
+    // 1. Scrap
+    if (db.data.scrapEntries) {
+      db.data.scrapEntries.filter(s => s.moId === entry.id).forEach(s => {
+        if (s.component === 'Battery') s.componentName = entry.battery;
+        else if (s.component === 'PCBA') s.componentName = entry.pcba;
+        else if (s.component === 'Coil') s.componentName = entry.coil;
+        else if (s.component === 'Shell') s.componentName = entry.shell;
+        else if (s.component === 'Lens') s.componentName = entry.lens;
+      });
+    }
+    // 2. Rework
+    if (db.data.reworkEntries) {
+      db.data.reworkEntries.filter(r => r.moId === entry.id).forEach(r => {
+        if (r.component === 'Battery') r.componentName = entry.battery;
+        else if (r.component === 'PCBA') r.componentName = entry.pcba;
+        else if (r.component === 'Coil') r.componentName = entry.coil;
+        else if (r.component === 'Shell') r.componentName = entry.shell;
+        else if (r.component === 'Lens') r.componentName = entry.lens;
+      });
+    }
+  };
+  applyCascade();
+  // ------------------------------------------------------------
+
   await db.write();
   res.json({ success: true, entry });
 };
