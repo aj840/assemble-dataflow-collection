@@ -6,7 +6,7 @@ import ModalPortal from '../components/ModalPortal';
 import MaterialBreakdown from '../components/MaterialBreakdown';
 
 export default function UserDashboard({ onBack, onNavigateScrap }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [mos, setMos] = useState([]);
   const [stats, setStats] = useState(null);
   const [filterStart, setFilterStart] = useState('');
@@ -343,6 +343,9 @@ export default function UserDashboard({ onBack, onNavigateScrap }) {
             </div>
           </div>
           <button className="btn btn-primary btn-sm" onClick={onBack}>+ New Plan</button>
+          <button className="btn btn-secondary btn-sm" onClick={logout} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <GlassIcon name="arrow-left" size={14} color="#6b7280" /> Logout
+          </button>
         </div>
       </nav>
 
