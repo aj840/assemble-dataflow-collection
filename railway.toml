@@ -1,0 +1,5 @@
+[build]
+buildCommand = "cd frontend && npm install --include=dev && npm run build"
+
+[deploy]
+startCommand = "cd backend && node server.js"

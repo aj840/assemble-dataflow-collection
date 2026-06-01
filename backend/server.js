@@ -12,6 +12,10 @@ import { getReworkEntries, createReworkEntry, updateReworkEntry, deleteReworkEnt
 import { getRndProducts, createRndProduct, updateRndProduct, deleteRndProduct, getRndEntries, createRndEntry, updateRndEntry, deleteRndEntry, exportRndExcel } from './routes/rnd.js';
 import { visionUpload, extractFromImage } from './routes/vision.js';
 import { mkdirSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Ensure data directory exists
 try { mkdirSync('./data', { recursive: true }); } catch {}
@@ -103,6 +107,16 @@ app.post('/api/vision/extract', visionUpload, extractFromImage);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
+
+// SPA catch-all — serve index.html for any non-API route
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'dist', 'index.html'));
+  }
+});
 
 const server = app.listen(PORT, () => {
   console.log(`\n✅ MfgPlan Server running at http://localhost:${PORT}\n`);
