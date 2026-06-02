@@ -1,19 +1,27 @@
-const API = (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api';
+// In production (Railway), VITE_API_URL is not needed — the frontend is served
+// by the same Express server, so we use relative paths (/api/...).
+// In development, Vite's proxy (vite.config.js) forwards /api → localhost:5000.
+// If VITE_API_URL is explicitly set, it takes priority (useful for pointing at a
+// separate backend server).
+const API = (import.meta.env.VITE_API_URL || '') + '/api';
 
 const req = async (url, opts = {}) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
   try {
     const res = await fetch(`${API}${url}`, {
       headers: { 'Content-Type': 'application/json', ...opts.headers },
       ...opts,
       body: opts.body ? JSON.stringify(opts.body) : undefined,
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     let data;
     const contentType = res.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       data = await res.json();
     } else {
-      // If not JSON, it might be an error page or raw text
       const text = await res.text();
       if (!res.ok) throw new Error(text || `Server error: ${res.status}`);
       return text;
@@ -24,10 +32,14 @@ const req = async (url, opts = {}) => {
     }
     return data;
   } catch (err) {
-    // Specifically handle 'Failed to fetch' which usually means the server is down
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out. The server took too long to respond. Please try again.');
+    }
+    // 'Failed to fetch' means the server is unreachable (network down, server crashed, wrong URL, etc.)
     if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
       console.error('Network Error: Could not connect to API at', API);
-      throw new Error(`Network Error: Could not connect to API. Please check your internet connection or API server status. (Trying to reach: ${API})`);
+      throw new Error('Network Error: Could not reach the server. Please check your internet connection.');
     }
     throw err;
   }
