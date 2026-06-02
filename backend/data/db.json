@@ -1,0 +1,516 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "employeeId": "UltraAss",
+      "password": "Human@2026",
+      "role": "admin",
+      "fullName": "System Admin",
+      "status": "Active",
+      "createdAt": "2026-05-19T07:31:26.535Z",
+      "lastLogin": "2026-06-02T09:14:58.107Z"
+    },
+    {
+      "id": "2",
+      "employeeId": "Ajay",
+      "password": "1219",
+      "role": "user",
+      "fullName": "Ajay Kumar",
+      "status": "Active",
+      "createdAt": "2026-05-19T07:31:26.537Z",
+      "lastLogin": "2026-05-22T09:29:04.837Z"
+    }
+  ],
+  "config": {
+    "fixedBattery": "24mah battery",
+    "fixedPCBA": "Ring PCBA V1.60",
+    "autoMode": false,
+    "accessRules": []
+  },
+  "moEntries": [
+    {
+      "id": "2a81600f-84e9-4dca-b4db-f89f7692bae7",
+      "refer": "",
+      "moNumber": "MO-100",
+      "sku": "TEST",
+      "qty": 10,
+      "od": "",
+      "planDate": "",
+      "batteryQty": 10,
+      "pcbaQty": 10,
+      "coilQty": 10,
+      "shellQty": 10,
+      "lensQty": 0,
+      "battery": "24mah battery",
+      "pcba": "Ring PCBA V1.60",
+      "coil": "N/A",
+      "shell": "TEST",
+      "lens": "N/A",
+      "isProRing": false,
+      "status": "Pending",
+      "completedQty": 0,
+      "batteryComp": 0,
+      "pcbaComp": 0,
+      "coilComp": 0,
+      "shellComp": 0,
+      "lensComp": 0,
+      "batchId": "BATCH-1780326087386",
+      "submittedBy": "test",
+      "createdAt": "2026-06-01T15:01:27.386Z",
+      "completedAt": null
+    }
+  ],
+  "scrapEntries": [],
+  "returnEntries": [],
+  "trashEntries": [],
+  "auditLogs": [
+    {
+      "id": "94bd2cc5-aa68-4717-808c-3b559584e52f",
+      "action": "System Admin logged in",
+      "user": "System Admin",
+      "time": "2026-06-02T09:14:58.118Z"
+    },
+    {
+      "id": "28a7bad0-f62a-46dd-b764-9b7e46de3909",
+      "action": "New MO created: MO-100 (SKU: test)",
+      "user": "test",
+      "time": "2026-06-01T15:01:27.386Z"
+    },
+    {
+      "id": "bbfe7665-db6d-4eb5-be30-404b07d025b9",
+      "action": "System Admin logged in",
+      "user": "System Admin",
+      "time": "2026-05-25T05:13:38.692Z"
+    },
+    {
+      "id": "5add8dd4-2551-43b3-b204-9d4e131184fd",
+      "action": "System Admin logged in",
+      "user": "System Admin",
+      "time": "2026-05-22T09:53:52.622Z"
+    },
+    {
+      "id": "7d44d661-6e57-4d28-b7c5-ef9a0913f5db",
+      "action": "Ajay Kumar logged in",
+      "user": "Ajay Kumar",
+      "time": "2026-05-22T09:29:04.843Z"
+    },
+    {
+      "id": "7eba3047-baab-4cad-ad07-315d371b3302",
+      "action": "System Admin logged in",
+      "user": "System Admin",
+      "time": "2026-05-22T09:26:16.554Z"
+    },
+    {
+      "id": "84a32277-8a88-4578-ae7a-03dce2ae34ba",
+      "action": "System Admin logged in",
+      "user": "System Admin",
+      "time": "2026-05-19T07:39:11.855Z"
+    }
+  ],
+  "components": {
+    "batteries": [
+      {
+        "id": "B-001",
+        "name": "24mah battery",
+        "status": "Active",
+        "updatedAt": "2024-03-12"
+      },
+      {
+        "id": "B-002",
+        "name": "32mah battery",
+        "status": "Active",
+        "updatedAt": "2024-03-10"
+      },
+      {
+        "id": "B-003",
+        "name": "39mah battery",
+        "status": "Active",
+        "updatedAt": "2024-02-28"
+      }
+    ],
+    "pcbas": [
+      {
+        "id": "P-001",
+        "name": "Ring PCBA V1.60",
+        "status": "Active",
+        "updatedAt": "2024-03-12"
+      },
+      {
+        "id": "P-002",
+        "name": "Ring PCBA V1.61",
+        "status": "Active",
+        "updatedAt": "2024-03-10"
+      },
+      {
+        "id": "P-003",
+        "name": "Ring PCBA V1.62",
+        "status": "Active",
+        "updatedAt": "2024-02-28"
+      },
+      {
+        "id": "P-004",
+        "name": "Ring Pro 3.5 PCBA",
+        "status": "Active",
+        "updatedAt": "2024-03-15"
+      }
+    ],
+    "coils": [
+      {
+        "id": "C-001",
+        "name": "Ring RX Coil-05",
+        "status": "Active"
+      },
+      {
+        "id": "C-002",
+        "name": "Ring RX Coil-06",
+        "status": "Active"
+      },
+      {
+        "id": "C-003",
+        "name": "Ring RX Coil-07",
+        "status": "Active"
+      },
+      {
+        "id": "C-004",
+        "name": "Ring RX Coil-08",
+        "status": "Active"
+      },
+      {
+        "id": "C-005",
+        "name": "Ring RX Coil-09",
+        "status": "Active"
+      },
+      {
+        "id": "C-006",
+        "name": "Ring RX Coil-10",
+        "status": "Active"
+      },
+      {
+        "id": "C-007",
+        "name": "Ring RX Coil-11",
+        "status": "Active"
+      },
+      {
+        "id": "C-008",
+        "name": "Ring RX Coil-12",
+        "status": "Active"
+      },
+      {
+        "id": "C-009",
+        "name": "Ring RX Coil-13",
+        "status": "Active"
+      },
+      {
+        "id": "C-010",
+        "name": "Ring RX Coil-14",
+        "status": "Active"
+      },
+      {
+        "id": "C-011",
+        "name": "Rare Ring RX Coil-05",
+        "status": "Active"
+      },
+      {
+        "id": "C-012",
+        "name": "Rare Ring RX Coil-06",
+        "status": "Active"
+      },
+      {
+        "id": "C-013",
+        "name": "Rare Ring RX Coil-07",
+        "status": "Active"
+      },
+      {
+        "id": "C-014",
+        "name": "Rare Ring RX Coil-08",
+        "status": "Active"
+      },
+      {
+        "id": "C-015",
+        "name": "Rare Ring RX Coil-09",
+        "status": "Active"
+      },
+      {
+        "id": "C-016",
+        "name": "Rare Ring RX Coil-10",
+        "status": "Active"
+      },
+      {
+        "id": "C-017",
+        "name": "Rare Ring RX Coil-11",
+        "status": "Active"
+      },
+      {
+        "id": "C-018",
+        "name": "Rare Ring RX Coil-12",
+        "status": "Active"
+      },
+      {
+        "id": "C-019",
+        "name": "Rare Ring RX Coil-13",
+        "status": "Active"
+      },
+      {
+        "id": "C-020",
+        "name": "Rare Ring RX Coil-14",
+        "status": "Active"
+      }
+    ],
+    "lenses": [
+      {
+        "id": "L-001",
+        "name": "PC LENS S05",
+        "status": "Active",
+        "updatedAt": "2024-03-15"
+      },
+      {
+        "id": "L-002",
+        "name": "PC LENS S06",
+        "status": "Active",
+        "updatedAt": "2024-03-15"
+      },
+      {
+        "id": "L-003",
+        "name": "PC LENS S07",
+        "status": "Active",
+        "updatedAt": "2024-03-15"
+      },
+      {
+        "id": "L-004",
+        "name": "PC LENS S08",
+        "status": "Active",
+        "updatedAt": "2024-03-15"
+      },
+      {
+        "id": "L-005",
+        "name": "PC LENS S09",
+        "status": "Active",
+        "updatedAt": "2024-03-15"
+      },
+      {
+        "id": "L-006",
+        "name": "PC LENS S10",
+        "status": "Active",
+        "updatedAt": "2024-03-15"
+      },
+      {
+        "id": "L-007",
+        "name": "PC LENS S11",
+        "status": "Active",
+        "updatedAt": "2024-03-15"
+      },
+      {
+        "id": "L-008",
+        "name": "PC LENS S12",
+        "status": "Active",
+        "updatedAt": "2024-03-15"
+      },
+      {
+        "id": "L-009",
+        "name": "PC LENS S13",
+        "status": "Active",
+        "updatedAt": "2024-03-15"
+      },
+      {
+        "id": "L-010",
+        "name": "PC LENS S14",
+        "status": "Active",
+        "updatedAt": "2024-03-15"
+      }
+    ],
+    "shells": [
+      "0.2mm AA05",
+      "0.2mm AA06",
+      "0.2mm AA07",
+      "0.2mm AA08",
+      "0.2mm AA09",
+      "0.2mm AA10",
+      "0.2mm AA11",
+      "0.2mm AA12",
+      "0.2mm AA13",
+      "0.2mm AA14",
+      "0.2mm AG05",
+      "0.2mm AG06",
+      "0.2mm AG07",
+      "0.2mm AG08",
+      "0.2mm AG09",
+      "0.2mm AG10",
+      "0.2mm AG11",
+      "0.2mm AG12",
+      "0.2mm AG13",
+      "0.2mm AG14",
+      "0.2mm AS05",
+      "0.2mm AS06",
+      "0.2mm AS07",
+      "0.2mm AS08",
+      "0.2mm AS09",
+      "0.2mm AS10",
+      "0.2mm AS11",
+      "0.2mm AS12",
+      "0.2mm AS13",
+      "0.2mm AS14",
+      "0.2mm MG05",
+      "0.2mm MG06",
+      "0.2mm MG07",
+      "0.2mm MG08",
+      "0.2mm MG09",
+      "0.2mm MG10",
+      "0.2mm MG11",
+      "0.2mm MG12",
+      "0.2mm MG13",
+      "0.2mm MG14",
+      "0.2mm RT05",
+      "0.2mm RT06",
+      "0.2mm RT07",
+      "0.2mm RT08",
+      "0.2mm RT09",
+      "0.2mm RT10",
+      "0.2mm RT11",
+      "0.2mm RT12",
+      "0.2mm RT13",
+      "0.2mm RT14",
+      "Brushed Rose gold 0.2MM - SIZE 05",
+      "Brushed Rose gold 0.2MM - SIZE 06",
+      "Brushed Rose gold 0.2MM - SIZE 07",
+      "Brushed Rose gold 0.2MM - SIZE 08",
+      "Brushed Rose gold 0.2MM - SIZE 09",
+      "Brushed Rose gold 0.2MM - SIZE 10",
+      "Brushed Rose gold 0.2MM - SIZE 11",
+      "Brushed Rose gold 0.2MM - SIZE 12",
+      "Brushed Rose gold 0.2MM - SIZE 13",
+      "Brushed Rose gold 0.2MM - SIZE 14",
+      "AA05",
+      "AA06",
+      "AA07",
+      "AA08",
+      "AA09",
+      "AA10",
+      "AA11",
+      "AA12",
+      "AA13",
+      "AA14",
+      "AG05",
+      "AG06",
+      "AG07",
+      "AG08",
+      "AG09",
+      "AG10",
+      "AG11",
+      "AG12",
+      "AG13",
+      "AG14",
+      "AS05",
+      "AS06",
+      "AS07",
+      "AS08",
+      "AS09",
+      "AS10",
+      "AS11",
+      "AS12",
+      "AS13",
+      "AS14",
+      "MG05",
+      "MG06",
+      "MG07",
+      "MG08",
+      "MG09",
+      "MG10",
+      "MG11",
+      "MG12",
+      "MG13",
+      "MG14",
+      "RT05",
+      "RT06",
+      "RT07",
+      "RT08",
+      "RT09",
+      "RT10",
+      "RT11",
+      "RT12",
+      "RT13",
+      "RT14",
+      "Kapton Tape (Roll)",
+      "RARE YELLOW GOLD SHELL LG05",
+      "RARE YELLOW GOLD SHELL LG06",
+      "RARE YELLOW GOLD SHELL LG07",
+      "RARE YELLOW GOLD SHELL LG08",
+      "RARE YELLOW GOLD SHELL LG09",
+      "RARE YELLOW GOLD SHELL LG10",
+      "RARE YELLOW GOLD SHELL LG11",
+      "RARE YELLOW GOLD SHELL LG12",
+      "RARE YELLOW GOLD SHELL LG13",
+      "RARE YELLOW GOLD SHELL LG14",
+      "RARE ROSE GOLD SHELL RS05",
+      "RARE ROSE GOLD SHELL RS06",
+      "RARE ROSE GOLD SHELL RS07",
+      "RARE ROSE GOLD SHELL RS08",
+      "RARE ROSE GOLD SHELL RS09",
+      "RARE ROSE GOLD SHELL RS10",
+      "RARE ROSE GOLD SHELL RS11",
+      "RARE ROSE GOLD SHELL RS12",
+      "RARE ROSE GOLD SHELL RS13",
+      "RARE ROSE GOLD SHELL RS14",
+      "RARE PLATINUM SHELL S05",
+      "RARE PLATINUM SHELL S06",
+      "RARE PLATINUM SHELL S07",
+      "RARE PLATINUM SHELL S08",
+      "RARE PLATINUM SHELL S09",
+      "RARE PLATINUM SHELL S10",
+      "RARE PLATINUM SHELL S11",
+      "RARE PLATINUM SHELL S12",
+      "RARE PLATINUM SHELL S13",
+      "RARE PLATINUM SHELL S14",
+      "Shell S05",
+      "Shell S06",
+      "Shell S07",
+      "Shell S08",
+      "Shell S09",
+      "Shell S10",
+      "Shell S11",
+      "Shell S12",
+      "Shell S13",
+      "Shell S14",
+      "DIESEL BLACK SHELL S05",
+      "DIESEL BLACK SHELL S06",
+      "DIESEL BLACK SHELL S07",
+      "DIESEL BLACK SHELL S08",
+      "DIESEL BLACK SHELL S09",
+      "DIESEL BLACK SHELL S10",
+      "DIESEL BLACK SHELL S11",
+      "DIESEL BLACK SHELL S12",
+      "DIESEL BLACK SHELL S13",
+      "DIESEL BLACK SHELL S14",
+      "DIESEL SILVER SHELL S05",
+      "DIESEL SILVER SHELL S06",
+      "DIESEL SILVER SHELL S07",
+      "DIESEL SILVER SHELL S08",
+      "DIESEL SILVER SHELL S09",
+      "DIESEL SILVER SHELL S10",
+      "DIESEL SILVER SHELL S11",
+      "DIESEL SILVER SHELL S12",
+      "DIESEL SILVER SHELL S13",
+      "DIESEL SILVER SHELL S14",
+      "TEST"
+    ]
+  },
+  "rndProducts": [
+    {
+      "id": "5491cde0-4c43-476b-ae7c-eb57e68aea58",
+      "code": "RD-001",
+      "description": "SAMPLE",
+      "category": "CHECKING",
+      "createdAt": "2026-05-22T09:55:01.660Z"
+    }
+  ],
+  "rndEntries": [
+    {
+      "id": "a89e65c9-b50b-4dd3-8a0f-040aa67affab",
+      "code": "RD-001",
+      "description": "SAMPLE",
+      "category": "CHECKING",
+      "submittedBy": "System Admin",
+      "submittedAt": "2026-05-22T09:55:15.455Z"
+    }
+  ],
+  "reworkEntries": []
+}
