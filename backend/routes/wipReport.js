@@ -20,7 +20,8 @@ export const downloadWipExcel = (req, res) => {
     return inLocalPeriod(dateStr, startDate, endDate);
   };
 
-  const periodMOs     = startDate ? allMOs.filter(e     => inPeriod(e.createdAt))   : allMOs;
+  const periodInMOs   = startDate ? allMOs.filter(e     => inPeriod(e.createdAt))   : allMOs;
+  const periodOutMOs  = startDate ? allMOs.filter(e     => e.status === 'Completed' && inPeriod(e.completedAt)) : allMOs;
   const periodScrap   = startDate ? allScrap.filter(e   => inPeriod(e.submittedAt)) : allScrap;
   const periodReturns = startDate ? allReturns.filter(e => inPeriod(e.returnedAt))  : allReturns;
   const periodReworks = startDate ? allReworks.filter(e => inPeriod(e.submittedAt)) : allReworks;
@@ -35,8 +36,8 @@ export const downloadWipExcel = (req, res) => {
   // RT  = returns — qty physically reduced from MO already; column shown for audit trail
   // OUT = sum of <compCompField> for Completed MOs that used this component
   //
-  // WIP = (IN + RC) − (RJ + RT + OUT)
-  const calcStats = (name, category, mos, scrap, returns, reworks) => {
+  // IN = (IN + RC) − (RJ + RT + OUT)
+  const calcStats = (name, category, inMos, outMos, scrap, returns, reworks) => {
     const nameField = { batteries: 'battery', pcbas: 'pcba', coils: 'coil', shells: 'shell', lenses: 'lens'      }[category];
     const qtyField  = { batteries: 'batteryQty', pcbas: 'pcbaQty', coils: 'coilQty', shells: 'shellQty', lenses: 'lensQty'  }[category];
     const compField = { batteries: 'batteryComp',pcbas: 'pcbaComp',coils: 'coilComp',shells: 'shellComp', lenses: 'lensComp' }[category];
@@ -44,11 +45,16 @@ export const downloadWipExcel = (req, res) => {
 
     let IN = 0, RC = 0, RJ = 0, RT = 0, OUT = 0;
 
-    // IN & OUT from MO entries
-    mos.forEach(e => {
+    // IN from created MOs
+    inMos.forEach(e => {
       if (e[nameField] === name) {
-        // Use per-component qty if stored, otherwise fall back to plan qty
         IN += e[qtyField] !== undefined ? (e[qtyField] || 0) : (e.qty || 0);
+      }
+    });
+
+    // OUT from completed MOs
+    outMos.forEach(e => {
+      if (e[nameField] === name) {
         OUT += e[compField] || 0;
       }
     });
@@ -160,9 +166,9 @@ export const downloadWipExcel = (req, res) => {
     wsData.push([`— ${cat.label.toUpperCase()} —`]);
 
     names.forEach(name => {
-      const total  = calcStats(name, cat.key, allMOs,    allScrap,   allReturns, allReworks);
+      const total  = calcStats(name, cat.key, allMOs,      allMOs,       allScrap,   allReturns, allReworks);
       const period = hasPeriod
-        ? calcStats(name, cat.key, periodMOs, periodScrap, periodReturns, periodReworks)
+        ? calcStats(name, cat.key, periodInMOs, periodOutMOs, periodScrap, periodReturns, periodReworks)
         : total;
 
       // Accumulate grand totals (always all-time)

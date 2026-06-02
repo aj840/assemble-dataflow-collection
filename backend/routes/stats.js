@@ -6,12 +6,18 @@ export const getStats = (req, res) => {
   const { date, startDate, endDate } = req.query;
   const today = date || getLocalDateStr();
 
-  // Apply date filter to MO entries
+  // Apply date filter to MO entries for IN
   let entries = db.data.moEntries || [];
+  let outEntries = db.data.moEntries || [];
+
   if (startDate && endDate) {
     entries = entries.filter(e => inLocalPeriod(e.createdAt, startDate, endDate));
+    outEntries = outEntries.filter(e => e.status === 'Completed' && inLocalPeriod(e.completedAt, startDate, endDate));
   } else if (date) {
     entries = entries.filter(e => isSameLocalDay(e.createdAt, date));
+    outEntries = outEntries.filter(e => e.status === 'Completed' && isSameLocalDay(e.completedAt, date));
+  } else {
+    outEntries = outEntries.filter(e => e.status === 'Completed');
   }
 
   // Scrap entries
@@ -80,7 +86,7 @@ export const getStats = (req, res) => {
     }
     return s + (e.componentQty || 0);
   }, 0);
-  const OUT = entries
+  const OUT = outEntries
     .reduce((s, e) => s + (e.batteryComp || 0) + (e.pcbaComp || 0) + (e.coilComp || 0) + (e.shellComp || 0) + (e.lensComp || 0), 0);
   const WIP = (IN + RC) - (RJ + RT + OUT);
 
@@ -152,6 +158,7 @@ export const getReport = (req, res) => {
 
   // Filter entries exactly by the datetime range using the shared utility
   const moEntries = (db.data.moEntries || []).filter(e => inLocalPeriod(e.createdAt, startDate, endDate));
+  const moOutEntries = (db.data.moEntries || []).filter(e => e.status === 'Completed' && inLocalPeriod(e.completedAt, startDate, endDate));
   const scrapEntries = (db.data.scrapEntries || []).filter(e => inLocalPeriod(e.submittedAt, startDate, endDate));
   const returnEntries = (db.data.returnEntries || []).filter(e => inLocalPeriod(e.returnedAt, startDate, endDate));
   const reworkEntries = (db.data.reworkEntries || []).filter(e => inLocalPeriod(e.submittedAt, startDate, endDate));
@@ -187,7 +194,7 @@ export const getReport = (req, res) => {
     item[field] += (val || 0);
   };
 
-  // 1. MO Entries (IN & OUT)
+  // 1. MO Entries IN (from moEntries created in period)
   moEntries.forEach(e => {
     findAndAdd('batteries', e.battery, 'in', e.batteryQty !== undefined ? e.batteryQty : (e.qty || 0));
     findAndAdd('pcbas',     e.pcba,    'in', e.pcbaQty    !== undefined ? e.pcbaQty    : (e.qty || 0));
@@ -196,7 +203,10 @@ export const getReport = (req, res) => {
     if (e.lens && e.lens !== 'N/A') {
       findAndAdd('lenses',  e.lens,    'in', e.lensQty    !== undefined ? e.lensQty    : (e.qty || 0));
     }
+  });
 
+  // 1b. MO Entries OUT (from moOutEntries completed in period)
+  moOutEntries.forEach(e => {
     findAndAdd('batteries', e.battery, 'out', e.batteryComp || 0);
     findAndAdd('pcbas',     e.pcba,    'out', e.pcbaComp    || 0);
     findAndAdd('coils',     e.coil,    'out', e.coilComp    || 0);

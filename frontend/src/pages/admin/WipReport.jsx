@@ -32,12 +32,12 @@ export default function WipReport() {
     setLoading(true);
     try {
       const params = {};
-      if (startDate) params.startDate = startDate;
-      if (endDate)   params.endDate   = endDate;
+      if (startDate) params.startDate = new Date(startDate.length === 16 ? startDate + ':00.000' : startDate + 'T00:00:00').toISOString();
+      if (endDate)   params.endDate   = new Date(endDate.length === 16 ? endDate + ':59.999' : endDate + 'T23:59:59.999').toISOString();
 
       const [statsData, reportData] = await Promise.all([
         api.getStats(params),
-        startDate && endDate ? api.getReport({ startDate, endDate }) : Promise.resolve(null),
+        startDate && endDate ? api.getReport(params) : Promise.resolve(null),
       ]);
       setStats(statsData);
       setReport(reportData);
@@ -51,8 +51,8 @@ export default function WipReport() {
     setDownloading(true);
     try {
       const params = {};
-      if (startDate) params.startDate = startDate;
-      if (endDate)   params.endDate   = endDate;
+      if (startDate) params.startDate = new Date(startDate.length === 16 ? startDate + ':00.000' : startDate + 'T00:00:00').toISOString();
+      if (endDate)   params.endDate   = new Date(endDate.length === 16 ? endDate + ':59.999' : endDate + 'T23:59:59.999').toISOString();
       const url  = api.exportWipUrl(params);
       const link = document.createElement('a');
       link.href  = url;
