@@ -5,8 +5,8 @@ const defaultData = {
   users: [
     {
       id: '1',
-      employeeId: process.env.ADMIN_ID || 'admin',
-      password: process.env.ADMIN_PASSWORD || 'change-me-in-env',
+      employeeId: process.env.ADMIN_ID || 'UltraAss',
+      password: process.env.ADMIN_PASSWORD || 'Human@2026',
       role: 'admin',
       fullName: 'System Admin',
       status: 'Active',
@@ -15,8 +15,8 @@ const defaultData = {
     },
     {
       id: '2',
-      employeeId: process.env.USER_ID || 'user',
-      password: process.env.USER_PASSWORD || 'change-me-in-env',
+      employeeId: process.env.USER_ID || 'Ajay',
+      password: process.env.USER_PASSWORD || '1219',
       role: 'user',
       fullName: 'Ajay Kumar',
       status: 'Active',

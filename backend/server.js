@@ -121,8 +121,8 @@ app.use((req, res, next) => {
   }
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`\n✅ MfgPlan Server running at http://localhost:${PORT}\n`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n✅ MfgPlan Server running at http://0.0.0.0:${PORT}\n`);
 });
 
 server.on('error', (err) => {
