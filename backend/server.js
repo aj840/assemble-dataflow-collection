@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { connectDB } from './db.js';
 import express from 'express';
 import cors from 'cors';
 import { login } from './routes/auth.js';
@@ -121,10 +122,15 @@ app.use((req, res, next) => {
   }
 });
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n✅ MfgPlan Server running at http://0.0.0.0:${PORT}\n`);
+// Connect to MongoDB first, then start the HTTP server
+connectDB().then(() => {
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n✅ MfgPlan Server running at http://0.0.0.0:${PORT}\n`);
+  });
+
+  server.on('error', (err) => {
+    console.error('❌ Server error:', err);
+  });
 });
 
-server.on('error', (err) => {
-  console.error('❌ Server error:', err);
-});
+

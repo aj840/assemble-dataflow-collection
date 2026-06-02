@@ -12,8 +12,9 @@ dist-ssr/
 .env.local
 .env.*.local
 
-# Database files (runtime data, not source code)
+# Database files — db.json committed for seed script on Render
 backend/data/*.json
+!backend/data/db.json
 
 # Old nested folder and zip (cleanup artifacts)
 Assemble DataFlow Collection/

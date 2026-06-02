@@ -1,331 +1,254 @@
-import db, { randomUUID } from '../db.js';
+import { randomUUID } from '../db.js';
+import { User, Config, Component } from '../models/Core.js';
+import { MOEntry } from '../models/MO.js';
+import { ScrapEntry, ReworkEntry, ReturnEntry, AuditLog, TrashEntry } from '../models/Entries.js';
 import { inLocalPeriod } from '../utils/dates.js';
+import mongoose from 'mongoose';
 
 // GET /api/admin/config
-export const getConfig = (req, res) => {
-  res.json(db.data.config);
+export const getConfig = async (req, res) => {
+  try {
+    let config = await Config.findOne().lean();
+    if (!config) config = { fixedBattery: '', fixedPCBA: '', autoMode: false, accessRules: [] };
+    res.json(config);
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
 // POST /api/admin/config
 export const updateConfig = async (req, res) => {
-  const { fixedBattery, fixedPCBA, autoMode } = req.body;
-  if (fixedBattery !== undefined) db.data.config.fixedBattery = fixedBattery;
-  if (fixedPCBA !== undefined) db.data.config.fixedPCBA = fixedPCBA;
-  if (autoMode !== undefined) db.data.config.autoMode = autoMode;
-  
-  const modeLabel = db.data.config.autoMode ? 'AUTO-BATTERY MODE' : 'FIXED MODE';
-  db.data.auditLogs.unshift({
-    id: randomUUID(),
-    action: `Config updated: Battery=${db.data.config.fixedBattery}, PCBA=${db.data.config.fixedPCBA}, Mode=${modeLabel}`,
-    user: 'Admin',
-    time: new Date().toISOString()
-  });
-  await db.write();
-  res.json({ success: true, config: db.data.config });
+  try {
+    const { fixedBattery, fixedPCBA, autoMode } = req.body;
+    let config = await Config.findOne();
+    if (!config) config = new Config({});
+    if (fixedBattery !== undefined) config.fixedBattery = fixedBattery;
+    if (fixedPCBA !== undefined) config.fixedPCBA = fixedPCBA;
+    if (autoMode !== undefined) config.autoMode = autoMode;
+    await config.save();
+    const modeLabel = config.autoMode ? 'AUTO-BATTERY MODE' : 'FIXED MODE';
+    await AuditLog.create({ id: randomUUID(), action: `Config updated: Battery=${config.fixedBattery}, PCBA=${config.fixedPCBA}, Mode=${modeLabel}`, user: 'Admin', timestamp: new Date().toISOString() });
+    res.json({ success: true, config });
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
 // GET /api/admin/users
-export const getUsers = (req, res) => {
-  const users = db.data.users.map(u => ({ ...u, password: undefined }));
-  res.json(users);
+export const getUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, '-password').lean();
+    res.json(users);
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
 // POST /api/admin/users
 export const createUser = async (req, res) => {
-  const { employeeId, password, role, fullName } = req.body;
-  if (!employeeId || !password) return res.status(400).json({ message: 'Employee ID and password are required' });
-  const exists = db.data.users.find(u => u.employeeId === employeeId);
-  if (exists) return res.status(409).json({ message: 'Employee ID already exists' });
-
-  const newUser = { id: randomUUID(), employeeId, password, role: role || 'user', fullName: fullName || employeeId, status: 'Active', createdAt: new Date().toISOString(), lastLogin: null };
-  db.data.users.push(newUser);
-  db.data.auditLogs.unshift({ id: randomUUID(), action: `New user created: ${employeeId} (${role || 'user'})`, user: 'Admin', time: new Date().toISOString() });
-  await db.write();
-  res.json({ success: true, user: { ...newUser, password: undefined } });
+  try {
+    const { employeeId, password, role, fullName } = req.body;
+    if (!employeeId || !password) return res.status(400).json({ message: 'Employee ID and password are required' });
+    const exists = await User.findOne({ employeeId });
+    if (exists) return res.status(409).json({ message: 'Employee ID already exists' });
+    const newUser = await User.create({ id: randomUUID(), employeeId, password, role: role || 'user', fullName: fullName || employeeId, status: 'Active', createdAt: new Date().toISOString(), lastLogin: null });
+    await AuditLog.create({ id: randomUUID(), action: `New user created: ${employeeId} (${role || 'user'})`, user: 'Admin', timestamp: new Date().toISOString() });
+    const { password: _, ...safeUser } = newUser.toObject();
+    res.json({ success: true, user: safeUser });
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
 // PUT /api/admin/users/:id
 export const updateUser = async (req, res) => {
-  const { id } = req.params;
-  const { fullName, role, status, password } = req.body;
-  const user = db.data.users.find(u => u.id === id);
-  if (!user) return res.status(404).json({ message: 'User not found' });
-  if (fullName) user.fullName = fullName;
-  if (role) user.role = role;
-  if (status) user.status = status;
-  if (password) user.password = password;
-  await db.write();
-  res.json({ success: true, user: { ...user, password: undefined } });
+  try {
+    const { id } = req.params;
+    const { fullName, role, status, password } = req.body;
+    const user = await User.findOne({ id });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (fullName) user.fullName = fullName;
+    if (role) user.role = role;
+    if (status) user.status = status;
+    if (password) user.password = password;
+    await user.save();
+    const { password: _, ...safeUser } = user.toObject();
+    res.json({ success: true, user: safeUser });
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
 // DELETE /api/admin/users/:id
 export const deleteUser = async (req, res) => {
-  const { id } = req.params;
-  const idx = db.data.users.findIndex(u => u.id === id);
-  if (idx === -1) return res.status(404).json({ message: 'User not found' });
-  db.data.users.splice(idx, 1);
-  await db.write();
-  res.json({ success: true });
+  try {
+    const result = await User.deleteOne({ id: req.params.id });
+    if (result.deletedCount === 0) return res.status(404).json({ message: 'User not found' });
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
 // GET /api/admin/components
-export const getComponents = (req, res) => {
-  res.json(db.data.components);
+export const getComponents = async (req, res) => {
+  try {
+    const allComps = await Component.find({}).lean();
+    const result = { batteries: [], pcbas: [], coils: [], shells: [], lenses: [] };
+    for (const c of allComps) {
+      if (c.category === 'shells') result.shells.push(c.name);
+      else if (result[c.category]) result[c.category].push({ id: c.id, name: c.name, status: c.status, updatedAt: c.updatedAt });
+    }
+    res.json(result);
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
 // POST /api/admin/components/manage
 export const manageComponents = async (req, res) => {
-  const { category, action, id, name, status } = req.body;
-  
-  // Ensure all categories exist
-  if (!db.data.components.lenses) db.data.components.lenses = [];
-  if (!db.data.components[category]) return res.status(400).json({ message: 'Invalid category' });
-  const now = new Date().toISOString().split('T')[0];
+  try {
+    const { category, action, id, name, status } = req.body;
+    const validCategories = ['batteries', 'pcbas', 'coils', 'lenses', 'shells'];
+    if (!validCategories.includes(category)) return res.status(400).json({ message: 'Invalid category' });
+    const now = new Date().toISOString().split('T')[0];
 
-  if (category === 'shells') {
     if (action === 'add') {
-      db.data.components.shells.push(name);
+      await Component.create({ id: randomUUID().split('-')[0], category, name, status: status || 'Active', updatedAt: now });
     } else if (action === 'edit') {
-      const idx = parseInt(id.replace('S-', ''), 10);
-      if (idx >= 0 && idx < db.data.components.shells.length) {
-        db.data.components.shells[idx] = name;
-      }
+      const comp = await Component.findOne({ id });
+      if (comp) { if (name) comp.name = name; if (status) comp.status = status; comp.updatedAt = now; await comp.save(); }
     } else if (action === 'delete') {
-      const idx = parseInt(id.replace('S-', ''), 10);
-      if (idx >= 0 && idx < db.data.components.shells.length) {
-        db.data.components.shells.splice(idx, 1);
-      }
+      await Component.deleteOne({ id });
     }
-  } else {
-    // batteries, pcbas, coils, lenses — all use the same object structure
-    const arr = db.data.components[category];
-    if (action === 'add') {
-      arr.push({ id: randomUUID().split('-')[0], name, status: status || 'Active', updatedAt: now });
-    } else if (action === 'edit') {
-      const item = arr.find(x => x.id === id);
-      if (item) {
-        if (name) item.name = name;
-        if (status) item.status = status;
-        item.updatedAt = now;
-      }
-    } else if (action === 'delete') {
-      const idx = arr.findIndex(x => x.id === id);
-      if (idx !== -1) arr.splice(idx, 1);
+
+    await AuditLog.create({ id: randomUUID(), action: `Component ${action}: [${category}] ${name || id}`, user: 'Admin', timestamp: new Date().toISOString() });
+    const updatedComps = await Component.find({}).lean();
+    const result = { batteries: [], pcbas: [], coils: [], shells: [], lenses: [] };
+    for (const c of updatedComps) {
+      if (c.category === 'shells') result.shells.push(c.name);
+      else if (result[c.category]) result[c.category].push({ id: c.id, name: c.name, status: c.status, updatedAt: c.updatedAt });
     }
-  }
-
-  db.data.auditLogs.unshift({
-    id: randomUUID(),
-    action: `Component ${action}: [${category}] ${name || id}`,
-    user: 'Admin',
-    time: new Date().toISOString()
-  });
-
-  await db.write();
-  res.json({ success: true, components: db.data.components });
+    res.json({ success: true, components: result });
+  } catch (err) { console.error(err); res.status(500).json({ message: 'Server error' }); }
 };
 
-
 // GET /api/admin/audit
-export const getAuditLogs = (req, res) => {
-  let logs = db.data.auditLogs;
-  const { startDate, endDate } = req.query;
-  if (startDate && endDate) {
-    logs = logs.filter(l => inLocalPeriod(l.time, startDate, endDate));
-  }
-  res.json(logs.slice(0, 500));
+export const getAuditLogs = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    let logs = await AuditLog.find({}).sort({ timestamp: -1 }).limit(500).lean();
+    if (startDate && endDate) logs = logs.filter(l => inLocalPeriod(l.timestamp, startDate, endDate));
+    res.json(logs);
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
 // DELETE /api/admin/audit
 export const deleteAuditLogs = async (req, res) => {
-  const { startDate, endDate } = req.query;
-  if (!startDate || !endDate) return res.status(400).json({ message: 'Start and end dates are required' });
-  
-  const initialLength = db.data.auditLogs.length;
-  db.data.auditLogs = db.data.auditLogs.filter(l => !inLocalPeriod(l.time, startDate, endDate));
-  
-  const deletedCount = initialLength - db.data.auditLogs.length;
-  await db.write();
-  res.json({ success: true, deletedCount });
+  try {
+    const { startDate, endDate } = req.query;
+    if (!startDate || !endDate) return res.status(400).json({ message: 'Start and end dates are required' });
+    const all = await AuditLog.find({}).lean();
+    const toDelete = all.filter(l => inLocalPeriod(l.timestamp, startDate, endDate)).map(l => l.id);
+    await AuditLog.deleteMany({ id: { $in: toDelete } });
+    res.json({ success: true, deletedCount: toDelete.length });
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
-// GET /api/admin/backup
-export const backupDatabase = (req, res) => {
-  res.download('./data/db.json', `MfgPlan_Backup_${new Date().toISOString().split('T')[0]}.json`);
+// GET /api/admin/backup — export full data as JSON
+export const backupDatabase = async (req, res) => {
+  try {
+    const [users, config, components, moEntries, scrapEntries, reworkEntries, returnEntries, auditLogs] = await Promise.all([
+      User.find({}).lean(), Config.findOne().lean(), Component.find({}).lean(),
+      MOEntry.find({}).lean(), ScrapEntry.find({}).lean(), ReworkEntry.find({}).lean(),
+      ReturnEntry.find({}).lean(), AuditLog.find({}).lean()
+    ]);
+    const filename = `MfgPlan_Backup_${new Date().toISOString().split('T')[0]}.json`;
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ users, config, components, moEntries, scrapEntries, reworkEntries, returnEntries, auditLogs }, null, 2));
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
 // POST /api/admin/db/action
 export const handleDbAction = async (req, res) => {
-  const { action, type, ids } = req.body;
-  if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ message: 'No IDs provided' });
+  try {
+    const { action, type, ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ message: 'No IDs provided' });
 
-  const getSourceArray = (t) => {
-    switch (t) {
-      case 'mo':     return db.data.moEntries;
-      case 'scrap':  return db.data.scrapEntries;
-      case 'return': return db.data.returnEntries;
-      case 'rework': return db.data.reworkEntries || [];
-      default: return null;
+    const ModelMap = { mo: MOEntry, scrap: ScrapEntry, return: ReturnEntry, rework: ReworkEntry };
+    const Model = ModelMap[type];
+    if (!Model) return res.status(400).json({ message: 'Invalid data type' });
+
+    if (action === 'trash') {
+      const items = await Model.find({ id: { $in: ids } }).lean();
+      await TrashEntry.insertMany(items.map(item => ({ id: randomUUID(), originalId: item.id, type, data: item, deletedAt: new Date().toISOString() })));
     }
-  };
 
-  const sourceArray = getSourceArray(type);
-  if (!sourceArray) return res.status(400).json({ message: 'Invalid data type' });
-
-  if (!db.data.trashEntries) db.data.trashEntries = [];
-
-  if (action === 'trash') {
-    const toTrash = sourceArray.filter(item => ids.includes(item.id));
-    toTrash.forEach(item => {
-      db.data.trashEntries.push({ ...item, originalSource: type, trashedAt: new Date().toISOString() });
-    });
-  }
-
-  // Remove from original array (applies to both 'trash' and 'delete')
-  const newArray = sourceArray.filter(item => !ids.includes(item.id));
-  if (type === 'mo')     db.data.moEntries     = newArray;
-  else if (type === 'scrap')  db.data.scrapEntries  = newArray;
-  else if (type === 'return') db.data.returnEntries = newArray;
-  else if (type === 'rework') db.data.reworkEntries = newArray;
-
-  db.data.auditLogs.unshift({
-    id: randomUUID(),
-    action: `Bulk ${action} applied to ${ids.length} ${type} entries`,
-    user: req.body.submittedBy || 'Admin',
-    time: new Date().toISOString()
-  });
-
-  await db.write();
-  res.json({ success: true });
+    await Model.deleteMany({ id: { $in: ids } });
+    await AuditLog.create({ id: randomUUID(), action: `Bulk ${action} applied to ${ids.length} ${type} entries`, user: req.body.submittedBy || 'Admin', timestamp: new Date().toISOString() });
+    res.json({ success: true });
+  } catch (err) { console.error(err); res.status(500).json({ message: 'Server error' }); }
 };
 
 // GET /api/admin/trash
-export const getTrash = (req, res) => {
-  res.json(db.data.trashEntries || []);
+export const getTrash = async (req, res) => {
+  try { res.json(await TrashEntry.find({}).lean()); }
+  catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
 // POST /api/admin/trash/action
 export const handleTrashAction = async (req, res) => {
-  const { action, ids } = req.body;
-  if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ message: 'No IDs provided' });
+  try {
+    const { action, ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ message: 'No IDs provided' });
+    const ModelMap = { mo: MOEntry, scrap: ScrapEntry, return: ReturnEntry, rework: ReworkEntry };
 
-  if (!db.data.trashEntries) db.data.trashEntries = [];
-
-  if (action === 'restore') {
-    const toRestore = db.data.trashEntries.filter(item => ids.includes(item.id));
-    toRestore.forEach(item => {
-      const type = item.originalSource;
-      const { originalSource, trashedAt, ...originalItem } = item;
-      
-      if (type === 'mo')           db.data.moEntries.push(originalItem);
-      else if (type === 'scrap')   db.data.scrapEntries.push(originalItem);
-      else if (type === 'return')  db.data.returnEntries.push(originalItem);
-      else if (type === 'rework')  { if (!db.data.reworkEntries) db.data.reworkEntries = []; db.data.reworkEntries.push(originalItem); }
-    });
-  }
-
-  // Remove from trash (applies to both 'delete' and 'restore')
-  db.data.trashEntries = db.data.trashEntries.filter(item => !ids.includes(item.id));
-
-  db.data.auditLogs.unshift({
-    id: randomUUID(),
-    action: `Bulk ${action} applied to ${ids.length} trashed items`,
-    user: req.body.submittedBy || 'Admin',
-    time: new Date().toISOString()
-  });
-
-  await db.write();
-  res.json({ success: true });
-};
-
-// POST /api/admin/wipe-all
-// Nuclear reset: wipes ALL moEntries, scrapEntries, returnEntries, trashEntries
-export const wipeAllData = async (req, res) => {
-  const { confirm } = req.body;
-  if (confirm !== 'WIPE_ALL_CONFIRMED') {
-    return res.status(400).json({ message: 'Missing confirmation token' });
-  }
-
-  const moCnt     = (db.data.moEntries     || []).length;
-  const scrapCnt  = (db.data.scrapEntries  || []).length;
-  const reworkCnt = (db.data.reworkEntries || []).length;
-  const returnCnt = (db.data.returnEntries || []).length;
-  const trashCnt  = (db.data.trashEntries  || []).length;
-
-  db.data.moEntries     = [];
-  db.data.scrapEntries  = [];
-  db.data.reworkEntries = [];
-  db.data.returnEntries = [];
-  db.data.trashEntries  = [];
-
-  db.data.auditLogs.unshift({
-    id: randomUUID(),
-    action: `⚠️ FULL DATABASE WIPE: Deleted ${moCnt} MOs, ${scrapCnt} Scrap, ${reworkCnt} Rework, ${returnCnt} Returns, ${trashCnt} Trash`,
-    user: req.body.submittedBy || 'Admin',
-    time: new Date().toISOString(),
-  });
-
-  await db.write();
-  res.json({ success: true, deleted: { mo: moCnt, scrap: scrapCnt, rework: reworkCnt, returns: returnCnt, trash: trashCnt } });
-};
-
-// GET /api/admin/wip-fixer
-// One-time utility to repair historical MO quantities corrupted by the double-counting bug.
-export const runWipFixer = async (req, res) => {
-  let fixedMOs = 0;
-
-  for (const mo of db.data.moEntries) {
-    if (mo.wipFixed) continue;
-
-    const moReturns = (db.data.returnEntries || []).filter(r => r.moId === mo.id);
-    if (moReturns.length === 0) {
-      mo.wipFixed = true; 
-      continue; 
-    }
-
-    let missingQty = 0;
-    let missingBattery = 0, missingPCBA = 0, missingCoil = 0, missingShell = 0, missingLens = 0;
-
-    for (const r of moReturns) {
-      if (r.isFullMO) {
-        missingQty += (r.componentQty || 0);
-        missingBattery += (r.componentQty || 0);
-        missingPCBA += (r.componentQty || 0);
-        missingCoil += (r.componentQty || 0);
-        missingShell += (r.componentQty || 0);
-        missingLens += (r.componentQty || 0);
-      } else if (r.status !== 'Replenished') {
-        if (r.component === 'Battery') missingBattery += (r.componentQty || 0);
-        if (r.component === 'PCBA') missingPCBA += (r.componentQty || 0);
-        if (r.component === 'Coil') missingCoil += (r.componentQty || 0);
-        if (r.component === 'Shell') missingShell += (r.componentQty || 0);
-        if (r.component === 'Lens') missingLens += (r.componentQty || 0);
+    if (action === 'restore') {
+      const toRestore = await TrashEntry.find({ id: { $in: ids } }).lean();
+      for (const item of toRestore) {
+        const Model = ModelMap[item.type];
+        if (Model) {
+          const { _id, ...data } = item.data;
+          await Model.create(data).catch(() => {}); // ignore duplicate key on restore
+        }
       }
     }
 
-    if (missingQty > 0 || missingBattery > 0 || missingPCBA > 0 || missingCoil > 0 || missingShell > 0 || missingLens > 0) {
-      if (mo.qty !== undefined) mo.qty += missingQty;
-      if (mo.batteryQty !== undefined) mo.batteryQty += missingBattery;
-      if (mo.pcbaQty !== undefined) mo.pcbaQty += missingPCBA;
-      if (mo.coilQty !== undefined) mo.coilQty += missingCoil;
-      if (mo.shellQty !== undefined) mo.shellQty += missingShell;
-      if (mo.lensQty !== undefined) mo.lensQty += missingLens;
-      fixedMOs++;
-    }
-    
-    mo.wipFixed = true;
-  }
-
-  if (fixedMOs > 0) {
-    db.data.auditLogs.unshift({
-      id: randomUUID(),
-      action: `WIP Fixer Script ran and repaired ${fixedMOs} MOs.`,
-      user: 'SystemAdmin',
-      time: new Date().toISOString()
-    });
-    await db.write();
-  }
-
-  res.json({ success: true, message: `WIP Fixer completed. Repaired ${fixedMOs} MOs. Updates have been saved.` });
+    await TrashEntry.deleteMany({ id: { $in: ids } });
+    await AuditLog.create({ id: randomUUID(), action: `Bulk ${action} applied to ${ids.length} trashed items`, user: req.body.submittedBy || 'Admin', timestamp: new Date().toISOString() });
+    res.json({ success: true });
+  } catch (err) { console.error(err); res.status(500).json({ message: 'Server error' }); }
 };
 
+// POST /api/admin/wipe-all
+export const wipeAllData = async (req, res) => {
+  try {
+    const { confirm } = req.body;
+    if (confirm !== 'WIPE_ALL_CONFIRMED') return res.status(400).json({ message: 'Missing confirmation token' });
+    const [moCnt, scrapCnt, reworkCnt, returnCnt, trashCnt] = await Promise.all([
+      MOEntry.countDocuments(), ScrapEntry.countDocuments(), ReworkEntry.countDocuments(), ReturnEntry.countDocuments(), TrashEntry.countDocuments()
+    ]);
+    await Promise.all([MOEntry.deleteMany({}), ScrapEntry.deleteMany({}), ReworkEntry.deleteMany({}), ReturnEntry.deleteMany({}), TrashEntry.deleteMany({})]);
+    await AuditLog.create({ id: randomUUID(), action: `⚠️ FULL DATABASE WIPE: Deleted ${moCnt} MOs, ${scrapCnt} Scrap, ${reworkCnt} Rework, ${returnCnt} Returns, ${trashCnt} Trash`, user: req.body.submittedBy || 'Admin', timestamp: new Date().toISOString() });
+    res.json({ success: true, deleted: { mo: moCnt, scrap: scrapCnt, rework: reworkCnt, returns: returnCnt, trash: trashCnt } });
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+};
+
+// GET /api/admin/wip-fixer
+export const runWipFixer = async (req, res) => {
+  try {
+    const mos = await MOEntry.find({ wipFixed: { $ne: true } });
+    let fixedMOs = 0;
+    for (const mo of mos) {
+      const moReturns = await ReturnEntry.find({ moId: mo.id }).lean();
+      if (!moReturns.length) { mo.wipFixed = true; await mo.save(); continue; }
+      let missingQty = 0, missingBattery = 0, missingPCBA = 0, missingCoil = 0, missingShell = 0, missingLens = 0;
+      for (const r of moReturns) {
+        if (r.isFullMO) { missingQty += r.componentQty || 0; missingBattery += r.componentQty || 0; missingPCBA += r.componentQty || 0; missingCoil += r.componentQty || 0; missingShell += r.componentQty || 0; missingLens += r.componentQty || 0; }
+        else if (r.status !== 'Replenished') {
+          if (r.component === 'Battery') missingBattery += r.componentQty || 0;
+          if (r.component === 'PCBA') missingPCBA += r.componentQty || 0;
+          if (r.component === 'Coil') missingCoil += r.componentQty || 0;
+          if (r.component === 'Shell') missingShell += r.componentQty || 0;
+          if (r.component === 'Lens') missingLens += r.componentQty || 0;
+        }
+      }
+      if (missingQty > 0) mo.qty += missingQty;
+      if (missingBattery > 0) mo.batteryQty += missingBattery;
+      if (missingPCBA > 0) mo.pcbaQty += missingPCBA;
+      if (missingCoil > 0) mo.coilQty += missingCoil;
+      if (missingShell > 0) mo.shellQty += missingShell;
+      if (missingLens > 0) mo.lensQty += missingLens;
+      mo.wipFixed = true; await mo.save(); fixedMOs++;
+    }
+    if (fixedMOs > 0) await AuditLog.create({ id: randomUUID(), action: `WIP Fixer Script ran and repaired ${fixedMOs} MOs.`, user: 'SystemAdmin', timestamp: new Date().toISOString() });
+    res.json({ success: true, message: `WIP Fixer completed. Repaired ${fixedMOs} MOs.` });
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+};
